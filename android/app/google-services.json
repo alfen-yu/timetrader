@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "527782610164",
+    "project_id": "timetrader-iu-fyp",
+    "storage_bucket": "timetrader-iu-fyp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:527782610164:android:49b19d36fda1dab4058aa1",
+        "android_client_info": {
+          "package_name": "com.example.timetrader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDHAVnHtKurl16yG2qHeddsKrcOf8CDnU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
