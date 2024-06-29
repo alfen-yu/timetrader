@@ -21,6 +21,8 @@ class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _address;
   late final TextEditingController _phoneNumber;
   File? _profilePicture;
+  File? _cnicFrontPicture;
+  File? _cnicBackPicture;
 
   @override
   void dispose() {
@@ -42,12 +44,18 @@ class _RegisterViewState extends State<RegisterView> {
     super.initState();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickImage(ImageSource source, String type) async {
     final picker = ImagePicker();
     final file = await picker.pickImage(source: source);
     if (file != null) {
       setState(() {
-        _profilePicture = File(file.path);
+        if (type == 'profile') {
+          _profilePicture = File(file.path);
+        } else if (type == 'cnicFront') {
+          _cnicFrontPicture = File(file.path);
+        } else if (type == 'cnicBack') {
+          _cnicBackPicture = File(file.path);
+        }
       });
     }
   }
@@ -79,7 +87,7 @@ class _RegisterViewState extends State<RegisterView> {
                             title: const Text('Gallery'),
                             onTap: () {
                               Navigator.pop(context);
-                              _pickImage(ImageSource.gallery);
+                              _pickImage(ImageSource.gallery, 'profile');
                             },
                           ),
                           ListTile(
@@ -87,7 +95,7 @@ class _RegisterViewState extends State<RegisterView> {
                             title: const Text('Camera'),
                             onTap: () {
                               Navigator.pop(context);
-                              _pickImage(ImageSource.camera);
+                              _pickImage(ImageSource.camera, 'profile');
                             },
                           ),
                         ],
@@ -149,6 +157,102 @@ class _RegisterViewState extends State<RegisterView> {
                 hintText: 'Enter your phone number',
               ),
             ),
+            const SizedBox(height: 16.0),
+            GestureDetector(
+              onTap: () async {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SafeArea(
+                          child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          ListTile(
+                            leading: const Icon(Icons.photo_library),
+                            title: const Text('Gallery'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickImage(ImageSource.gallery, 'cnicFront');
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.photo_camera),
+                            title: const Text('Camera'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickImage(ImageSource.camera, 'cnicFront');
+                            },
+                          ),
+                        ],
+                      ));
+                    });
+              },
+              child: Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: _cnicFrontPicture != null
+                    ? Image.file(_cnicFrontPicture!, fit: BoxFit.cover)
+                    : const Center(
+                        child: Text('Upload CNIC Front Picture',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            )),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            GestureDetector(
+              onTap: () async {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SafeArea(
+                          child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          ListTile(
+                            leading: const Icon(Icons.photo_library),
+                            title: const Text('Gallery'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickImage(ImageSource.gallery, 'cnicBack');
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.photo_camera),
+                            title: const Text('Camera'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickImage(ImageSource.camera, 'cnicBack');
+                            },
+                          ),
+                        ],
+                      ));
+                    });
+              },
+              child: Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: _cnicBackPicture != null
+                    ? Image.file(_cnicBackPicture!, fit: BoxFit.cover)
+                    : const Center(
+                        child: Text('Upload CNIC Back Picture',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            )),
+                      ),
+              ),
+            ),
             const SizedBox(height: 24.0),
             ElevatedButton(
               onPressed: () async {
@@ -203,8 +307,7 @@ class _RegisterViewState extends State<RegisterView> {
                 );
               },
               style: TextButton.styleFrom(
-                foregroundColor:
-                    Colors.lightBlueAccent, // Font color: light blue
+                foregroundColor: Colors.lightBlueAccent,
               ),
               child: const Text('Login Here'),
             ),
