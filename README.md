@@ -5,3 +5,6 @@
     - Firebase Cloud Storage for NIC & Profile Picture
     - Introduction Screen 
     - Dashboard 
+    
+## To Implement: 
+    - Lazy Loading for User Registration 
