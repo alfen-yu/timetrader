@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:timetrader/services/auth/auth_user.dart';
 import 'package:timetrader/services/auth/auth_provider.dart';
 import 'package:timetrader/services/auth/firebase_auth_provider.dart';
@@ -8,21 +10,42 @@ import 'package:timetrader/services/auth/firebase_auth_provider.dart';
 
 class AuthService implements AuthProvider {
   final AuthProvider provider;
-  const AuthService(this.provider); // constructor that takes a provider, {dependency injection}
+  const AuthService(
+      this.provider); // constructor that takes a provider, {dependency injection}
 
-  factory AuthService.firebase() => AuthService(FirebaseAuthProvider()); // gives the FirebaseAuthProvider to AuthService, which we can use to call functions 
+  factory AuthService.firebase() => AuthService(
+      FirebaseAuthProvider()); // gives the FirebaseAuthProvider to AuthService, which we can use to call functions
 
   @override
   Future<void> initialize() => provider.initialize();
 
   @override
-  Future<AuthUser> createUser({required String email, required String password, required String fullName, required String address, required String phoneNumber}) => provider.createUser(email: email, password: password, fullName: fullName, address: address, phoneNumber: phoneNumber);
+  Future<AuthUser> createUser(
+          {required String email,
+          required String password,
+          required String fullName,
+          required String address,
+          required String phoneNumber,
+          required File? profilePicture,
+          required File? cnicFrontPicture,
+          required File? cnicBackPicture}) =>
+      provider.createUser(
+        email: email,
+        password: password,
+        fullName: fullName,
+        address: address,
+        phoneNumber: phoneNumber,
+        profilePicture: profilePicture,
+        cnicFrontPicture: cnicFrontPicture,
+        cnicBackPicture: cnicBackPicture,
+      );
 
   @override
   AuthUser? get currentUser => provider.currentUser;
 
   @override
-  Future<AuthUser> login({required String email, required String password}) => provider.login(email: email, password: password);
+  Future<AuthUser> login({required String email, required String password}) =>
+      provider.login(email: email, password: password);
 
   @override
   Future<void> logout() => provider.logout();

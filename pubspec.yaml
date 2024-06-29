@@ -43,8 +43,7 @@ dependencies:
   path: ^1.9.0
   intl_phone_field: ^3.2.0
   image_picker: ^1.1.2
-  # permission_handler: ^11.3.1
-  fluttertoast: ^8.2.6
+  firebase_storage: ^11.7.7
 
 dev_dependencies:
   flutter_test:

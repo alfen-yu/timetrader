@@ -271,12 +271,18 @@ class _RegisterViewState extends State<RegisterView> {
                     fullName: fullName,
                     address: address,
                     phoneNumber: phoneNumber,
+                    profilePicture: _profilePicture,
+                    cnicFrontPicture: _cnicFrontPicture,
+                    cnicBackPicture: _cnicBackPicture,
                   );
+
                   AuthService.firebase().sendEmailVerification();
+
                   if (!context.mounted) return;
                   Navigator.of(context).pushNamed(
                     verifyEmailRoute,
                   );
+                  
                 } on EmailAlreadyInUseAuthException {
                   await showErrorDialog(
                       context, 'Email account already in use.');

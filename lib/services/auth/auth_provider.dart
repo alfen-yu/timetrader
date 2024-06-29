@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:timetrader/services/auth/auth_user.dart';
 
 // abstract class inmplemented by firebase auth provider, auth service
@@ -7,7 +9,15 @@ abstract class AuthProvider {
   Future<void> initialize();
   AuthUser? get currentUser;
   Future<AuthUser> login({required String email, required String password});
-  Future<AuthUser> createUser({required String email, required String password, required String fullName, required String address, required String phoneNumber});
+  Future<AuthUser> createUser(
+      {required String email,
+      required String password,
+      required String fullName,
+      required String address,
+      required String phoneNumber,
+      required File? profilePicture,
+      required File? cnicFrontPicture,
+      required File? cnicBackPicture});
   Future<void> logout();
   Future<void> sendEmailVerification();
 }

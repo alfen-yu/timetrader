@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:timetrader/firebase_options.dart';
 import 'package:timetrader/services/auth/auth_user.dart';
 import 'package:timetrader/services/auth/auth_provider.dart';
@@ -5,31 +7,48 @@ import 'package:timetrader/services/auth/auth_exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 
 // making a generic authentication provider and user
 
 class FirebaseAuthProvider implements AuthProvider {
-
-  // initialization of connection with firebase 
+  // initialization of connection with firebase
   @override
   Future<void> initialize() async {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   }
 
+  // Initialize FirebaseCloudStorage instance
+  final FirebaseCloudStorage _cloudStorage = FirebaseCloudStorage();
+
   @override
-  Future<AuthUser> createUser(
-      {required String email, required String password, required String fullName, required String address, required String phoneNumber}) async {
+  Future<AuthUser> createUser({
+    required String email,
+    required String password,
+    required String fullName,
+    required String address,
+    required String phoneNumber,
+    required File? profilePicture,
+    required File? cnicFrontPicture,
+    required File? cnicBackPicture,
+  }) async {
     try {
-      await FirebaseAuth.instance
+      final authUser = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      final user = currentUser;
+      await _cloudStorage.createNewUser(
+        uid: authUser.user!.uid,
+        email: email,
+        fullName: fullName,
+        address: address,
+        phoneNumber: phoneNumber,
+        profilePicture: profilePicture,
+        cnicFrontPicture: cnicFrontPicture,
+        cnicBackPicture: cnicBackPicture,
+      );
 
-      if (user != null) {
-        return user;
-      } else {
-        throw UserNotLoggedInException();
-      }
+      return AuthUser.fromFirebase(authUser.user!);
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'email-already-in-use':
