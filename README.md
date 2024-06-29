@@ -3,8 +3,9 @@
     - Email Verification with Firebase 
     - User Data with Firestore
     - Firebase Cloud Storage for NIC & Profile Picture
-    - Introduction Screen 
+    - Loading between Screens Register to Send Email Verification Added
+    - Introduction Screen
     - Dashboard 
     
 ## To Implement: 
-    - Lazy Loading for User Registration 
+    - Cloud Functions for deletion of user from Firebase manually

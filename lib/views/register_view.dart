@@ -23,6 +23,7 @@ class _RegisterViewState extends State<RegisterView> {
   File? _profilePicture;
   File? _cnicFrontPicture;
   File? _cnicBackPicture;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -60,6 +61,53 @@ class _RegisterViewState extends State<RegisterView> {
     }
   }
 
+  Future<void> _register() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Gather all user data
+    final fullName = _fullName.text;
+    final email = _email.text;
+    final password = _password.text;
+    final address = _address.text;
+    final phoneNumber = _phoneNumber.text;
+
+    try {
+      await AuthService.firebase().createUser(
+        email: email,
+        password: password,
+        fullName: fullName,
+        address: address,
+        phoneNumber: phoneNumber,
+        profilePicture: _profilePicture,
+        cnicFrontPicture: _cnicFrontPicture,
+        cnicBackPicture: _cnicBackPicture,
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pushNamed(
+        verifyEmailRoute,
+      );
+
+      await AuthService.firebase().sendEmailVerification();
+
+      if (!mounted) return;
+    } on EmailAlreadyInUseAuthException {
+      await showErrorDialog(context, 'Email account already in use.');
+    } on InvalidEmailAuthException {
+      await showErrorDialog(context, 'Your email address is invalid!');
+    } on WeakPasswordAuthException {
+      await showErrorDialog(context, 'Please enter a strong password!');
+    } on GenericAuthException {
+      await showErrorDialog(context, 'An unexpected error occurred.');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,257 +116,228 @@ class _RegisterViewState extends State<RegisterView> {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            GestureDetector(
-              onTap: () async {
-                showModalBottomSheet(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return SafeArea(
-                          child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          ListTile(
-                            leading: const Icon(Icons.photo_library),
-                            title: const Text('Gallery'),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _pickImage(ImageSource.gallery, 'profile');
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.photo_camera),
-                            title: const Text('Camera'),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _pickImage(ImageSource.camera, 'profile');
-                            },
-                          ),
-                        ],
-                      ));
-                    });
-              },
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey[200],
-                backgroundImage: _profilePicture != null
-                    ? FileImage(_profilePicture!)
-                    : null,
-                child: _profilePicture == null
-                    ? const Icon(Icons.camera_alt, color: Colors.grey, size: 50)
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            TextField(
-              controller: _fullName,
-              decoration: const InputDecoration(
-                hintText: 'Enter your full name',
-                labelText: 'Full Name',
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            TextField(
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                hintText: 'Enter your email',
-                labelText: 'Email',
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            TextField(
-              controller: _password,
-              obscureText: true,
-              decoration: const InputDecoration(
-                hintText: 'Enter your password',
-                labelText: 'Password',
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            TextField(
-              controller: _address,
-              decoration: const InputDecoration(
-                hintText: 'Enter your address',
-                labelText: 'Address',
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            IntlPhoneField(
-              controller: _phoneNumber,
-              keyboardType: TextInputType.phone,
-              initialCountryCode: 'PK',
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-                hintText: 'Enter your phone number',
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            GestureDetector(
-              onTap: () async {
-                showModalBottomSheet(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return SafeArea(
-                          child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          ListTile(
-                            leading: const Icon(Icons.photo_library),
-                            title: const Text('Gallery'),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _pickImage(ImageSource.gallery, 'cnicFront');
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.photo_camera),
-                            title: const Text('Camera'),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _pickImage(ImageSource.camera, 'cnicFront');
-                            },
-                          ),
-                        ],
-                      ));
-                    });
-              },
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return SafeArea(
+                              child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              ListTile(
+                                leading: const Icon(Icons.photo_library),
+                                title: const Text('Gallery'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _pickImage(ImageSource.gallery, 'profile');
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.photo_camera),
+                                title: const Text('Camera'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _pickImage(ImageSource.camera, 'profile');
+                                },
+                              ),
+                            ],
+                          ));
+                        });
+                  },
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: _profilePicture != null
+                        ? FileImage(_profilePicture!)
+                        : null,
+                    child: _profilePicture == null
+                        ? const Icon(Icons.camera_alt,
+                            color: Colors.grey, size: 50)
+                        : null,
+                  ),
                 ),
-                child: _cnicFrontPicture != null
-                    ? Image.file(_cnicFrontPicture!, fit: BoxFit.cover)
-                    : const Center(
-                        child: Text('Upload CNIC Front Picture',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16,
-                            )),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            GestureDetector(
-              onTap: () async {
-                showModalBottomSheet(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return SafeArea(
-                          child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          ListTile(
-                            leading: const Icon(Icons.photo_library),
-                            title: const Text('Gallery'),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _pickImage(ImageSource.gallery, 'cnicBack');
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.photo_camera),
-                            title: const Text('Camera'),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _pickImage(ImageSource.camera, 'cnicBack');
-                            },
-                          ),
-                        ],
-                      ));
-                    });
-              },
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: _fullName,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your full name',
+                    labelText: 'Full Name',
+                  ),
                 ),
-                child: _cnicBackPicture != null
-                    ? Image.file(_cnicBackPicture!, fit: BoxFit.cover)
-                    : const Center(
-                        child: Text('Upload CNIC Back Picture',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16,
-                            )),
-                      ),
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your email',
+                    labelText: 'Email',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: _password,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your password',
+                    labelText: 'Password',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: _address,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your address',
+                    labelText: 'Address',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                IntlPhoneField(
+                  controller: _phoneNumber,
+                  keyboardType: TextInputType.phone,
+                  initialCountryCode: 'PK',
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number',
+                    hintText: 'Enter your phone number',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                GestureDetector(
+                  onTap: () async {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return SafeArea(
+                              child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              ListTile(
+                                leading: const Icon(Icons.photo_library),
+                                title: const Text('Gallery'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _pickImage(ImageSource.gallery, 'cnicFront');
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.photo_camera),
+                                title: const Text('Camera'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _pickImage(ImageSource.camera, 'cnicFront');
+                                },
+                              ),
+                            ],
+                          ));
+                        });
+                  },
+                  child: Container(
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: _cnicFrontPicture != null
+                        ? Image.file(_cnicFrontPicture!, fit: BoxFit.cover)
+                        : const Center(
+                            child: Text('Upload CNIC Front Picture',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                )),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                GestureDetector(
+                  onTap: () async {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return SafeArea(
+                              child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              ListTile(
+                                leading: const Icon(Icons.photo_library),
+                                title: const Text('Gallery'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _pickImage(ImageSource.gallery, 'cnicBack');
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.photo_camera),
+                                title: const Text('Camera'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _pickImage(ImageSource.camera, 'cnicBack');
+                                },
+                              ),
+                            ],
+                          ));
+                        });
+                  },
+                  child: Container(
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: _cnicBackPicture != null
+                        ? Image.file(_cnicBackPicture!, fit: BoxFit.cover)
+                        : const Center(
+                            child: Text('Upload CNIC Back Picture',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                )),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _register,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlueAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Register'),
+                ),
+                const SizedBox(height: 16.0),
+                const Text('Already Registered?', textAlign: TextAlign.center),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      loginRoute,
+                      (route) => false,
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.lightBlueAccent,
+                  ),
+                  child: const Text('Login Here'),
+                ),
+              ],
+            ),
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(),
               ),
             ),
-            const SizedBox(height: 24.0),
-            ElevatedButton(
-              onPressed: () async {
-                // Gather all user data
-                final fullName = _fullName.text;
-                final email = _email.text;
-                final password = _password.text;
-                final address = _address.text;
-                final phoneNumber = _phoneNumber.text;
-
-                // Validate and process registration
-                try {
-                  await AuthService.firebase().createUser(
-                    email: email,
-                    password: password,
-                    fullName: fullName,
-                    address: address,
-                    phoneNumber: phoneNumber,
-                    profilePicture: _profilePicture,
-                    cnicFrontPicture: _cnicFrontPicture,
-                    cnicBackPicture: _cnicBackPicture,
-                  );
-
-                  AuthService.firebase().sendEmailVerification();
-
-                  if (!context.mounted) return;
-                  Navigator.of(context).pushNamed(
-                    verifyEmailRoute,
-                  );
-                  
-                } on EmailAlreadyInUseAuthException {
-                  await showErrorDialog(
-                      context, 'Email account already in use.');
-                } on InvalidEmailAuthException {
-                  await showErrorDialog(
-                      context, 'Your email address is invalid!');
-                } on WeakPasswordAuthException {
-                  await showErrorDialog(
-                      context, 'Please enter a strong password!');
-                } on GenericAuthException {
-                  await showErrorDialog(
-                      context, 'An unexpected error occurred.');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.lightBlueAccent,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Register'),
-            ),
-            const SizedBox(height: 16.0),
-            const Text('Already Registered?', textAlign: TextAlign.center),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  loginRoute,
-                  (route) => false,
-                );
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.lightBlueAccent,
-              ),
-              child: const Text('Login Here'),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
