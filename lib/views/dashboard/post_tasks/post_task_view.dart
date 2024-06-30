@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timetrader/views/dashboard/hamburger_menu.dart';
+import 'package:timetrader/views/dashboard/post_tasks/categories.dart';
 
 class PostTaskView extends StatelessWidget {
   const PostTaskView({super.key});
@@ -9,7 +10,7 @@ class PostTaskView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Post a Task',
+          'What do you need help with?',
           style: TextStyle(fontSize: 18),
         ),
         centerTitle: true,
@@ -20,10 +21,17 @@ class PostTaskView extends StatelessWidget {
           HamburgerMenu(),
         ],
       ),
-      body: const Center(
-        child: Text(
-          'Post a Task page content goes here',
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 10.0,
+          mainAxisSpacing: 10.0,
         ),
+        itemCount: categories.length,
+        itemBuilder: (BuildContext context, int index) {
+          return CategoryTile(category: categories[index]);
+        },
       ),
     );
   }
