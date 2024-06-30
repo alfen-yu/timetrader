@@ -16,6 +16,7 @@ class NavigationBarView extends StatelessWidget {
     return NavigationBar(
       onDestinationSelected: onDestinationSelected,
       indicatorColor: Colors.lightBlueAccent,
+      backgroundColor: Colors.white,
       selectedIndex: currentIndex,
       destinations: const <Widget>[
         NavigationDestination(

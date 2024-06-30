@@ -43,28 +43,31 @@ class _TasksPageState extends State<TasksPage> {
           const HamburgerMenu(),
         ],
       ),
-      body: StreamBuilder<Iterable<CloudTask>>(
-        stream: _tasksService.allTasks(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No tasks available.'));
-          } else {
-            final allTasks = snapshot.data!;
-            return TasksListView(
-              tasks: allTasks,
-              onDeleteTask: (task) async {
-                await _tasksService.deleteTask(documentId: task.taskId);
-              },
-              onTapTask: (task) {
-                Navigator.of(context).pushNamed(crudTaskViewRoute, arguments: task);
-              },
-            );
-          }
-        },
+      body: Container(
+        color: Colors.grey[200],
+        child: StreamBuilder<Iterable<CloudTask>>(
+          stream: _tasksService.allTasks(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No tasks available.'));
+            } else {
+              final allTasks = snapshot.data!;
+              return TasksListView(
+                tasks: allTasks,
+                onDeleteTask: (task) async {
+                  await _tasksService.deleteTask(documentId: task.taskId);
+                },
+                onTapTask: (task) {
+                  Navigator.of(context).pushNamed(crudTaskViewRoute, arguments: task);
+                },
+              );
+            }
+          },
+        ),
       ),
     );
   }
