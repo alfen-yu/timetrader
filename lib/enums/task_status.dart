@@ -1,0 +1,4 @@
+enum TaskStatus {
+  open, 
+  closed,
+}

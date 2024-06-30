@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.GALLERY"/>
     <application
-        android:label="timetrader"
+        android:label="Time Trader"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,9 +1,19 @@
 const ownerUserIdFieldName = 'uid';
+
+// for Users 
 const usersCollection = 'users';
-const textFieldName = 'text';
 const fullNameFieldName = 'fullName';
 const addressFieldName = 'address';
 const phoneNumberFieldName = 'phoneNumber';
 const profilePictureUrlFieldName = 'profilePictureUrl';
 const cnicFrontPictureUrlFieldName = 'cnicFrontPictureUrl';
 const cnicBackPictureUrlFieldName = 'cnicBackPictureUrl';
+
+// for Task 
+const tasksCollection = 'tasks';
+const titleFieldName = 'title';
+const locationFieldName = 'location';
+const statusFieldName = 'status';
+const priceFieldName = 'price';
+const commentsFieldName = 'comments';
+const offersFieldName = 'offers';
