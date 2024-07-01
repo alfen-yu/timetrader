@@ -113,21 +113,30 @@ class FirebaseCloudStorage {
   Future<CloudTask> createNewTask({
     required String ownerUserId,
     required String title,
+    required String description,
+    required String hours,
     required String location,
+    required int budget,
+    required String jobType,
+    required String? category,
     required bool status,
-    required int price,
   }) async {
     try {
       final document = await tasks.add({
         ownerUserIdFieldName: ownerUserId,
         titleFieldName: title,
+        descriptionFieldName: description,
+        hoursFieldName: hours,
         locationFieldName: location,
+        budgetFieldName: budget,
+        jobTypeFieldName: jobType,
+        categoryFieldName: category,
         statusFieldName: status,
-        priceFieldName: price,
       });
 
       final fetchedTask = await document.get();
-      return CloudTask.fromSnapshot(fetchedTask as QueryDocumentSnapshot<Map<String, dynamic>>);
+      return CloudTask.fromSnapshot(
+          fetchedTask as QueryDocumentSnapshot<Map<String, dynamic>>);
     } catch (e) {
       throw CouldNotCreateTaskException();
     }
@@ -136,22 +145,29 @@ class FirebaseCloudStorage {
   Future<void> updateTask({
     required String documentId,
     required String title,
+    required String description,
+    required String hours,
     required String location,
+    required int budget,
+    required String? category,
     required bool status,
-    required int price,
+    required String jobType,
   }) async {
     try {
       await tasks.doc(documentId).update({
         titleFieldName: title,
+        descriptionFieldName: description,
+        hoursFieldName: hours,
         locationFieldName: location,
+        budgetFieldName: budget,
+        categoryFieldName: category,
         statusFieldName: status,
-        priceFieldName: price,
+        jobTypeFieldName: jobType,
       });
     } catch (e) {
       throw CouldNotUpdateTaskException();
     }
   }
-
 }
 
 // // using snapshots for live changes, get to retrieve the data,

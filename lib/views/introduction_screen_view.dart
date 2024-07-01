@@ -57,7 +57,6 @@ class IntroductionScreenView extends StatelessWidget {
           ),
         ),
         onDone: () {
-          // Handle done action, maybe navigate to another screen
           Navigator.of(context).pushReplacementNamed(loginRoute);
         },
         pages: getPages(),

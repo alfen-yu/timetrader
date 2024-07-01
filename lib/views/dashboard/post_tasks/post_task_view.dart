@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timetrader/constants/routes.dart';
 import 'package:timetrader/views/dashboard/hamburger_menu.dart';
 import 'package:timetrader/views/dashboard/post_tasks/categories.dart';
 
@@ -30,7 +31,15 @@ class PostTaskView extends StatelessWidget {
         ),
         itemCount: categories.length,
         itemBuilder: (BuildContext context, int index) {
-          return CategoryTile(category: categories[index]);
+          return IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                crudTaskViewRoute,
+                arguments: {'category': categories[index].name},
+              );
+            },
+            icon: CategoryTile(category: categories[index]),
+          );
         },
       ),
     );

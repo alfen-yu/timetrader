@@ -125,7 +125,7 @@ class TasksListView extends StatelessWidget {
 
                     const SizedBox(height: 4),
                     Text(
-                      'Rs.${task.price}',
+                      'Rs.${task.budget}',
                       style: const TextStyle(fontSize: 12, color: Colors.lightBlueAccent),
                     ),
                   ],

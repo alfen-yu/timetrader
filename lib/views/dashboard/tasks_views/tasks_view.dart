@@ -35,12 +35,8 @@ class _TasksPageState extends State<TasksPage> {
         shadowColor: Colors.amber,
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pushNamed(crudTaskViewRoute),
-            icon: const Icon(Icons.add),
-          ),
-          const HamburgerMenu(),
+        actions: const [
+          HamburgerMenu(),
         ],
       ),
       body: Container(

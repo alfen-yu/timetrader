@@ -7,25 +7,40 @@ class CloudTask {
   final String taskId;
   final String ownerUserId;
   final String title;
+  final String description;
+  final String hours;
   final String location;
-  final bool status; // true for open, false for closed
-  final int price;
+  final int budget;
+  final String jobType;
+  final String? category;
+  final bool status;
 
   const CloudTask({
     required this.taskId,
     required this.ownerUserId,
     required this.title,
+    required this.description,
+    required this.hours,
     required this.location,
+    required this.budget,
+    required this.jobType,
+    required this.category,
     required this.status,
-    required this.price,
   });
 
-  // gives us the current snapshot of the cloud firestore
-  CloudTask.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
-      : taskId = snapshot.id,
-        ownerUserId = snapshot.data()[ownerUserIdFieldName],
-        title = snapshot.data()[titleFieldName] as String,
-        location = snapshot.data()[locationFieldName],
-        status = snapshot.data()[statusFieldName],
-        price = snapshot.data()[priceFieldName];
+  factory CloudTask.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
+    final data = snapshot.data();
+    return CloudTask(
+      taskId: snapshot.id,
+      ownerUserId: data?[ownerUserIdFieldName] ?? '',
+      title: data?[titleFieldName] ?? '',
+      description: data?[descriptionFieldName] ?? '',
+      hours: data?[hoursFieldName] ?? '',
+      location: data?[locationFieldName] ?? '',
+      budget: data?[budgetFieldName] ?? 0,
+      jobType: data?[jobTypeFieldName] ?? '',
+      category: data?[categoryFieldName],
+      status: data?[statusFieldName] ?? false,
+    );
+  }
 }
