@@ -22,3 +22,5 @@ const descriptionFieldName = 'description';
 const hoursFieldName = 'hours';
 const budgetFieldName = 'budget';
 const jobTypeFieldName = 'jobType';
+const createdAtFieldName = 'createdAt';
+const dueDateFieldName = 'dueDate';

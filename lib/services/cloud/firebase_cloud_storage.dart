@@ -90,13 +90,13 @@ class FirebaseCloudStorage {
             doc as QueryDocumentSnapshot<Map<String, dynamic>>)));
   }
 
-  // fetch comments count
+  // Fetch comments count
   Future<int> getCommentsCount(String taskId) async {
     final snapshot = await tasks.doc(taskId).collection('comments').get();
     return snapshot.docs.length;
   }
 
-  // fetch offers count
+  // Fetch offers count
   Future<int> getOffersCount(String taskId) async {
     final snapshot = await tasks.doc(taskId).collection('offers').get();
     return snapshot.docs.length;
@@ -118,8 +118,10 @@ class FirebaseCloudStorage {
     required String location,
     required int budget,
     required String jobType,
-    required String? category,
+    required String category,
     required bool status,
+    required Timestamp createdAt,
+    required DateTime dueDate,
   }) async {
     try {
       final document = await tasks.add({
@@ -132,11 +134,13 @@ class FirebaseCloudStorage {
         jobTypeFieldName: jobType,
         categoryFieldName: category,
         statusFieldName: status,
+        createdAtFieldName: createdAt,
+        dueDateFieldName: Timestamp.fromDate(dueDate),
       });
 
       final fetchedTask = await document.get();
       return CloudTask.fromSnapshot(
-          fetchedTask as QueryDocumentSnapshot<Map<String, dynamic>>);
+          fetchedTask as DocumentSnapshot<Map<String, dynamic>>);
     } catch (e) {
       throw CouldNotCreateTaskException();
     }
@@ -149,12 +153,13 @@ class FirebaseCloudStorage {
     required String hours,
     required String location,
     required int budget,
-    required String? category,
+    required String category,
     required bool status,
     required String jobType,
+    required DateTime dueDate,
   }) async {
     try {
-      await tasks.doc(documentId).update({
+      Map<String, dynamic> updateData = {
         titleFieldName: title,
         descriptionFieldName: description,
         hoursFieldName: hours,
@@ -163,12 +168,17 @@ class FirebaseCloudStorage {
         categoryFieldName: category,
         statusFieldName: status,
         jobTypeFieldName: jobType,
-      });
+      };
+
+      updateData[dueDateFieldName] = Timestamp.fromDate(dueDate);
+
+      await tasks.doc(documentId).update(updateData);
     } catch (e) {
       throw CouldNotUpdateTaskException();
     }
   }
 }
+
 
 // // using snapshots for live changes, get to retrieve the data,
 // Stream<Iterable<CloudNote>> allNotes({required String ownerUserId}) =>

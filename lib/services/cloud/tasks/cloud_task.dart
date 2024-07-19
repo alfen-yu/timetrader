@@ -12,8 +12,10 @@ class CloudTask {
   final String location;
   final int budget;
   final String jobType;
-  final String? category;
+  final String category;
   final bool status;
+  final Timestamp createdAt;
+  final DateTime dueDate;
 
   const CloudTask({
     required this.taskId,
@@ -26,21 +28,25 @@ class CloudTask {
     required this.jobType,
     required this.category,
     required this.status,
+    required this.createdAt,
+    required this.dueDate,
   });
 
   factory CloudTask.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
-    final data = snapshot.data();
+    final data = snapshot.data()!;
     return CloudTask(
       taskId: snapshot.id,
-      ownerUserId: data?[ownerUserIdFieldName] ?? '',
-      title: data?[titleFieldName] ?? '',
-      description: data?[descriptionFieldName] ?? '',
-      hours: data?[hoursFieldName] ?? '',
-      location: data?[locationFieldName] ?? '',
-      budget: data?[budgetFieldName] ?? 0,
-      jobType: data?[jobTypeFieldName] ?? '',
-      category: data?[categoryFieldName],
-      status: data?[statusFieldName] ?? false,
+      ownerUserId: data[ownerUserIdFieldName],
+      title: data[titleFieldName],
+      description: data[descriptionFieldName],
+      hours: data[hoursFieldName],
+      location: data[locationFieldName] ?? '',
+      budget: data[budgetFieldName] ?? 0,
+      jobType: data[jobTypeFieldName],
+      category: data[categoryFieldName],
+      status: data[statusFieldName] ?? false,
+      createdAt: data[createdAtFieldName],
+      dueDate: (data[dueDateFieldName] as Timestamp).toDate(),
     );
   }
 }

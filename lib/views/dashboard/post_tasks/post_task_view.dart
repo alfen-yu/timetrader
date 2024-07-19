@@ -31,14 +31,14 @@ class PostTaskView extends StatelessWidget {
         ),
         itemCount: categories.length,
         itemBuilder: (BuildContext context, int index) {
-          return IconButton(
-            onPressed: () {
+          return InkWell(
+            onTap: () {
               Navigator.of(context).pushNamed(
                 crudTaskViewRoute,
                 arguments: {'category': categories[index].name},
               );
             },
-            icon: CategoryTile(category: categories[index]),
+            child: CategoryTile(category: categories[index]),
           );
         },
       ),

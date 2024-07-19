@@ -6,13 +6,11 @@ typedef TaskCallback = void Function(CloudTask task);
 
 class TasksListView extends StatelessWidget {
   final Iterable<CloudTask> tasks;
-  final TaskCallback onDeleteTask;
   final TaskCallback onTapTask;
 
   const TasksListView({
     super.key,
     required this.tasks,
-    required this.onDeleteTask,
     required this.onTapTask,
   });
 
@@ -24,7 +22,7 @@ class TasksListView extends StatelessWidget {
         .getDownloadURL();
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     final sortedTasks = tasks.toList()
       ..sort((a, b) => b.taskId.compareTo(a.taskId));
@@ -39,7 +37,7 @@ class TasksListView extends StatelessWidget {
             final profilePictureUrl =
                 snapshot.data ?? 'https://via.placeholder.com/150';
             return Container(
-              color: Colors.white, 
+              color: Colors.white,
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: ListTile(
                 onTap: () => onTapTask(task),
@@ -64,10 +62,10 @@ class TasksListView extends StatelessWidget {
                       children: [
                         const Icon(Icons.location_on, size: 14),
                         const SizedBox(width: 4),
-                        Text(task.location),
+                        Text(task.jobType == 'Physical' ? task.location : 'Online'),
                       ],
                     ),
-                    const SizedBox(height: 8), 
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         FutureBuilder<int>(
@@ -76,17 +74,17 @@ class TasksListView extends StatelessWidget {
                             final commentsCount = snapshot.data ?? 0;
                             return Row(
                               children: [
-                                const Icon(Icons.comment, size: 10), 
+                                const Icon(Icons.comment, size: 10),
                                 const SizedBox(width: 8),
                                 Text(
                                   '$commentsCount Comments',
-                                  style: const TextStyle(fontSize: 10), 
+                                  style: const TextStyle(fontSize: 10),
                                 ),
                               ],
                             );
                           },
                         ),
-                        const SizedBox(width: 16), 
+                        const SizedBox(width: 16),
                         FutureBuilder<int>(
                           future: FirebaseCloudStorage().getOffersCount(task.taskId),
                           builder: (context, snapshot) {
@@ -94,7 +92,7 @@ class TasksListView extends StatelessWidget {
                             return Row(
                               children: [
                                 const Icon(Icons.local_offer, size: 10),
-                                const SizedBox(width: 8), 
+                                const SizedBox(width: 8),
                                 Text(
                                   '$offersCount Offers',
                                   style: const TextStyle(fontSize: 10),
@@ -113,8 +111,8 @@ class TasksListView extends StatelessWidget {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.green, 
-                        borderRadius: BorderRadius.circular(10), 
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child: Text(
@@ -122,7 +120,6 @@ class TasksListView extends StatelessWidget {
                         style: const TextStyle(fontSize: 12, color: Colors.white),
                       ),
                     ),
-
                     const SizedBox(height: 4),
                     Text(
                       'Rs.${task.budget}',

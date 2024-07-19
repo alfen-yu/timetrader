@@ -4,6 +4,7 @@ import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:timetrader/views/dashboard/hamburger_menu.dart';
+// import 'package:timetrader/views/dashboard/tasks_views/task_details_view.dart';
 import 'package:timetrader/views/dashboard/tasks_views/task_list_view.dart';
 
 class TasksPage extends StatefulWidget {
@@ -53,11 +54,13 @@ class _TasksPageState extends State<TasksPage> {
             } else {
               final allTasks = snapshot.data!;
               return TasksListView(
-                tasks: allTasks,
-                onDeleteTask: (task) async {
-                  await _tasksService.deleteTask(documentId: task.taskId);
-                },
+                tasks: allTasks.toList(), 
                 onTapTask: (task) {
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //     builder: (context) => TaskDetailsView(task: task),
+                  //   ),
+                  // );
                   Navigator.of(context).pushNamed(crudTaskViewRoute, arguments: task);
                 },
               );

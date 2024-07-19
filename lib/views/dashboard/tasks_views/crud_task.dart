@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
@@ -18,9 +19,11 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
   late final TextEditingController _hoursController;
   late final TextEditingController _locationController;
   late final TextEditingController _budgetController;
-  String _jobType = 'Online';
-  String? _category;
+  String _jobType = 'Physical';
+  late String _category;
+  late DateTime _dueDate;
   bool _isLoading = false;
+  bool _isLocationEnabled = true;
 
   @override
   void initState() {
@@ -30,6 +33,7 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
     _hoursController = TextEditingController();
     _locationController = TextEditingController();
     _budgetController = TextEditingController();
+    _dueDate = DateTime.now(); 
     super.initState();
   }
 
@@ -41,6 +45,20 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
     _locationController.dispose();
     _budgetController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDueDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _dueDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)), 
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _dueDate = pickedDate;
+      });
+    }
   }
 
   void _deleteEmptyTask() async {
@@ -55,6 +73,7 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
     }
   }
 
+
   void _saveTask() async {
     final task = _task;
     final title = _titleController.text;
@@ -62,10 +81,11 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
     final hours = _hoursController.text;
     final jobType = _jobType;
     final category = _category;
-    final location = _locationController.text;
+    final location = _jobType == 'Online' ? '' : _locationController.text;
     final budget = int.tryParse(_budgetController.text) ?? 0;
 
     if (task != null && title.isNotEmpty && description.isNotEmpty) {
+      // Update existing task
       await _tasksService.updateTask(
         documentId: task.taskId,
         title: title,
@@ -76,10 +96,14 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
         status: true,
         location: location,
         budget: budget,
+        dueDate: _dueDate,
       );
     } else {
+      // Create new task
       final currentUser = AuthService.firebase().currentUser!;
       final uid = currentUser.id;
+      final createdAt = Timestamp.now();
+
       final newTask = await _tasksService.createNewTask(
         ownerUserId: uid,
         title: title,
@@ -90,6 +114,8 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
         status: true,
         location: location,
         budget: budget,
+        createdAt: createdAt,
+        dueDate: _dueDate, 
       );
       _task = newTask;
     }
@@ -97,51 +123,16 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
     _deleteEmptyTask();
   }
 
-  // Future<CloudTask> createReadUpdateTask(BuildContext context) async {
-  //   final widgetTask = context.getArgument<CloudTask>();
-  //   if (widgetTask != null) {
-  //     _task = widgetTask;
-  //     _titleController.text = widgetTask.title;
-  //     _descriptionController.text = widgetTask.description;
-  //     _hoursController.text = widgetTask.hours;
-  //     _skillsController.text = widgetTask.skills;
-  //     _locationController.text = widgetTask.location;
-  //     _budgetController.text = widgetTask.budget.toString();
-  //     _jobType = widgetTask.jobType;
-  //     _category = widgetTask.category;
-  //     return widgetTask;
-  //   }
-  //   final existingTask = _task;
-  //   if (existingTask != null) {
-  //     return existingTask;
-  //   }
-
-  //   final currentUser = AuthService.firebase().currentUser!;
-  //   final uid = currentUser.id;
-  //   final newTask = await _tasksService.createNewTask(
-  //     ownerUserId: uid,
-  //     title: '',
-  //     description: '',
-  //     hours: '',
-  //     skills: '',
-  //     location: '',
-  //     budget: 0,
-  //     jobType: 'Online',
-  //     category: _category,
-  //     status: true,
-  //   );
-  //   _task = newTask;
-  //   return newTask;
-  // }
-
-  @override
+   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map?;
-    _category ??= args?['category'];
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    if (arguments != null && arguments.containsKey('category')) {
+      _category = arguments['category'];
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create a Task'),
+        title: Text(_task != null ? 'Edit Task' : 'Create a Task'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -184,13 +175,17 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
                   child: DropdownButton<String>(
                     value: _jobType,
                     items: const [
-                      DropdownMenuItem(value: 'Online', child: Text('Online')),
                       DropdownMenuItem(
                           value: 'Physical', child: Text('Physical')),
+                      DropdownMenuItem(value: 'Online', child: Text('Online')),
                     ],
                     onChanged: (value) {
                       setState(() {
                         _jobType = value!;
+                        _isLocationEnabled = _jobType == 'Physical';
+                        if (!_isLocationEnabled) {
+                          _locationController.text = '';
+                        }
                       });
                     },
                   ),
@@ -204,6 +199,7 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
                 hintText: 'Location',
                 labelText: 'Location',
               ),
+              enabled: _isLocationEnabled,
             ),
             const SizedBox(height: 16),
             TextField(
@@ -215,21 +211,40 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
+            GestureDetector(
+              onTap: _pickDueDate,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Due Date',
+                  hintText: 'Select Due Date',
+                  border: OutlineInputBorder(),
+                ),
+                child: Text(
+                  '${_dueDate.day}/${_dueDate.month}/${_dueDate.year}',
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Category: $_category',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
                 setState(() {
                   _isLoading = true;
                 });
-                _saveTask(); // Save task logic moved here
+                _saveTask();
                 setState(() {
                   _isLoading = false;
                 });
-                if (!context.mounted) return;
                 Navigator.of(context).pop();
               },
-              child: const Text('Save Task'),
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Save Task'),
             ),
-            if (_isLoading) const Center(child: CircularProgressIndicator()),
           ],
         ),
       ),
