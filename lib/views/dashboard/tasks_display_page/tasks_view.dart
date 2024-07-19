@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:timetrader/constants/routes.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:timetrader/views/dashboard/hamburger_menu.dart';
-// import 'package:timetrader/views/dashboard/tasks_views/task_details_view.dart';
-import 'package:timetrader/views/dashboard/tasks_views/task_list_view.dart';
+import 'package:timetrader/views/dashboard/tasks_display_page/task_details_view.dart';
+import 'package:timetrader/views/dashboard/tasks_display_page/task_list_view.dart';
 
 class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
@@ -56,12 +55,12 @@ class _TasksPageState extends State<TasksPage> {
               return TasksListView(
                 tasks: allTasks.toList(), 
                 onTapTask: (task) {
-                  // Navigator.of(context).push(
-                  //   MaterialPageRoute(
-                  //     builder: (context) => TaskDetailsView(task: task),
-                  //   ),
-                  // );
-                  Navigator.of(context).pushNamed(crudTaskViewRoute, arguments: task);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => TaskDetailsView(task: task),
+                    ),
+                  );
+                  // Navigator.of(context).pushNamed(crudTaskViewRoute, arguments: task);
                 },
               );
             }

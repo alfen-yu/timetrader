@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timetrader/constants/routes.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/views/dashboard/dashboard_view.dart';
-import 'package:timetrader/views/dashboard/tasks_views/crud_task.dart';
+import 'package:timetrader/views/dashboard/post_tasks_page/crud_task.dart';
 import 'package:timetrader/views/introduction_screen_view.dart';
 import 'package:timetrader/views/login_view.dart';
 import 'package:timetrader/views/register_view.dart';

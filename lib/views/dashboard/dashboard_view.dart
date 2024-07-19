@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:timetrader/views/dashboard/account_view.dart';
 import 'package:timetrader/views/dashboard/messages_view.dart';
 import 'package:timetrader/views/dashboard/navigation_bar.dart';
-import 'package:timetrader/views/dashboard/post_tasks/post_task_view.dart';
-import 'package:timetrader/views/dashboard/tasks_views/tasks_view.dart';
+import 'package:timetrader/views/dashboard/post_tasks_page/post_task_view.dart';
+import 'package:timetrader/views/dashboard/tasks_display_page/tasks_view.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -13,7 +13,7 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  int pageIndex = 1;
+  int pageIndex = 0;
 
   void onPageSelected(int index) {
     setState(() {

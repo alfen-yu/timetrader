@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timetrader/constants/routes.dart';
 import 'package:timetrader/views/dashboard/hamburger_menu.dart';
-import 'package:timetrader/views/dashboard/post_tasks/categories.dart';
+import 'package:timetrader/views/dashboard/post_tasks_page/categories.dart';
 
 class PostTaskView extends StatelessWidget {
   const PostTaskView({super.key});

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:timetrader/services/cloud/tasks/cloud_task.dart'; // Ensure this import matches your CloudTask model
+import 'package:timetrader/services/cloud/tasks/cloud_task.dart'; 
+import 'package:intl/intl.dart';
 
 class TaskDetailsView extends StatelessWidget {
   final CloudTask task;
@@ -8,6 +9,8 @@ class TaskDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dueDateFormatted = DateFormat('yyyy-MM-dd').format(task.dueDate);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(task.title),
@@ -20,11 +23,10 @@ class TaskDetailsView extends StatelessWidget {
             // Posted By: User Profile Section
             ListTile(
               leading: CircleAvatar(
-                // Use user's profile picture or placeholder
                 backgroundColor: Colors.grey,
-                child: Text(task.taskId[0]), // Adjust as needed based on your data structure
+                child: Text(task.taskId[0]), 
               ),
-              title: Text("Posted By: ${task.taskId}"), // Adjust as needed based on your data structure
+              title: Text("Posted By: ${task.ownerUserId}"), 
             ),
             const SizedBox(height: 16.0),
 
@@ -36,11 +38,11 @@ class TaskDetailsView extends StatelessWidget {
             ),
             const SizedBox(height: 16.0),
 
-            // Due Date Section (if available)
+            // Due Date Section
             _buildDetailRow(
               icon: Icons.date_range,
               title: 'Due Date',
-              content: task.dueDate as String, // Replace with actual due date if available
+              content: dueDateFormatted, 
             ),
             const SizedBox(height: 16.0),
 
@@ -59,7 +61,7 @@ class TaskDetailsView extends StatelessWidget {
               style: const TextStyle(fontSize: 16.0),
             ),
 
-            // Offers Section (to be implemented)
+            // Offers Section 
             const SizedBox(height: 16.0),
             const Text(
               'Offers:',
@@ -71,7 +73,7 @@ class TaskDetailsView extends StatelessWidget {
               style: TextStyle(fontSize: 16.0),
             ),
 
-            // Comments Section (to be implemented)
+            // Comments Section
             const SizedBox(height: 16.0),
             const Text(
               'Comments:',
@@ -79,7 +81,7 @@ class TaskDetailsView extends StatelessWidget {
             ),
             const SizedBox(height: 8.0),
             const Text(
-              'No comments yet.', // Placeholder for displaying comments
+              'No comments yet.', 
               style: TextStyle(fontSize: 16.0),
             ),
           ],
