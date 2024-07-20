@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timetrader/views/dashboard/hamburger_menu.dart';
+import 'package:timetrader/views/dashboard/side_menu.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -7,6 +8,7 @@ class AccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const SideMenu(),
       appBar: AppBar(
         title: const Text(
           'Account',

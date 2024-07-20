@@ -7,6 +7,7 @@ class CouldNotCreateUserException extends CloudStorageException {}
 class CouldNotRetrieveUserException extends CloudStorageException {}
 class CouldNotUpdateUserException extends CloudStorageException {}
 class CouldNotDeleteUserException extends CloudStorageException {}
+class ErrorGettingUserFromTheDatabase extends CloudStorageException {}
 
 // Excpetions for Tasks
 class CouldNotCreateTaskException extends CloudStorageException {}

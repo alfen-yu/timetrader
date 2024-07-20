@@ -3,6 +3,7 @@ import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:timetrader/views/dashboard/hamburger_menu.dart';
+import 'package:timetrader/views/dashboard/side_menu.dart';
 import 'package:timetrader/views/dashboard/tasks_display_page/task_details_view.dart';
 import 'package:timetrader/views/dashboard/tasks_display_page/task_list_view.dart';
 
@@ -26,6 +27,7 @@ class _TasksPageState extends State<TasksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const SideMenu(),
       appBar: AppBar(
         title: const Text(
           'Earn Money',

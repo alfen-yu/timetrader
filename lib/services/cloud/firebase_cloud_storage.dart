@@ -82,6 +82,15 @@ class FirebaseCloudStorage {
     }
   }
 
+  Future<Map<String, dynamic>?> getUserDetails(String userId) async {
+    try {
+      final doc = await users.doc(userId).get();
+      return doc.exists ? doc.data() as Map<String, dynamic> : null;
+    } catch (e) {
+      throw Exception('Error fetching user details: $e');
+    }
+  }
+
   // Firebase Cloud Functions for Tasks
 
   Stream<Iterable<CloudTask>> allTasks() {

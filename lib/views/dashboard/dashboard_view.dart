@@ -15,6 +15,13 @@ class DashboardView extends StatefulWidget {
 class _DashboardViewState extends State<DashboardView> {
   int pageIndex = 0;
 
+  final List<Widget> pages = [
+    const TasksPage(),
+    const PostTaskView(),
+    const MessagesPage(),
+    const AccountPage(),
+  ];
+
   void onPageSelected(int index) {
     setState(() {
       pageIndex = index;
@@ -28,12 +35,10 @@ class _DashboardViewState extends State<DashboardView> {
         currentIndex: pageIndex,
         onDestinationSelected: onPageSelected,
       ),
-      body: <Widget>[
-        const TasksPage(),
-        const PostTaskView(),
-        const MessagesPage(),
-        const AccountPage(),
-      ][pageIndex],
+      body: IndexedStack(
+        index: pageIndex,
+        children: pages,
+      ),
     );
   }
 }
