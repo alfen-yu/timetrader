@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:timetrader/constants/categories.dart';
 import 'package:timetrader/constants/routes.dart';
-import 'package:timetrader/views/dashboard/hamburger_menu.dart';
-import 'package:timetrader/views/dashboard/post_tasks_page/categories.dart';
+import 'package:timetrader/views/dashboard/post_tasks_page/category_tiles.dart';
+import 'package:timetrader/views/dashboard/side_menu_page/side_menu.dart';
 
 class PostTaskView extends StatelessWidget {
   const PostTaskView({super.key});
@@ -9,6 +10,7 @@ class PostTaskView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const SideMenu(),
       appBar: AppBar(
         title: const Text(
           'What do you need help with?',
@@ -18,9 +20,6 @@ class PostTaskView extends StatelessWidget {
         shadowColor: Colors.amber,
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
-        actions: const [
-          HamburgerMenu(),
-        ],
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),

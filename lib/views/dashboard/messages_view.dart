@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:timetrader/views/dashboard/hamburger_menu.dart';
+import 'package:timetrader/views/dashboard/side_menu_page/side_menu.dart';
 
 class MessagesPage extends StatelessWidget {
   const MessagesPage({super.key});
@@ -7,6 +7,7 @@ class MessagesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const SideMenu(),
       appBar: AppBar(
         title: const Text(
           'Messages',
@@ -16,9 +17,6 @@ class MessagesPage extends StatelessWidget {
         shadowColor: Colors.amber,
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
-        actions: const [
-          HamburgerMenu(),
-        ],
       ),
       body: const Center(
         child: Text(

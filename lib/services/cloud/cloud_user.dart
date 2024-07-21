@@ -10,7 +10,7 @@ class CloudUser {
   final String cnicFrontPictureUrl;
   final String cnicBackPictureUrl;
 
-  CloudUser({
+  const CloudUser({
     required this.uid,
     required this.email,
     required this.fullName,

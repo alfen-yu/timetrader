@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
-import 'package:timetrader/views/dashboard/side_menu.dart';
+import 'package:timetrader/views/dashboard/side_menu_page/side_menu.dart';
 import 'package:timetrader/views/dashboard/tasks_display_page/task_details_view.dart';
 import 'package:timetrader/views/dashboard/tasks_display_page/task_list_view.dart';
 
