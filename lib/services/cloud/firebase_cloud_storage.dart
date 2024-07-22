@@ -219,6 +219,15 @@ class FirebaseCloudStorage {
       throw CouldNotCreateTaskerException();
     }
   }
+
+  Future<bool> isUserRegisteredAsTasker(String userId) async {
+    final taskerDoc = await FirebaseFirestore.instance
+        .collection('taskers')
+        .doc(userId)
+        .get();
+
+    return taskerDoc.exists;
+  }
 }
 
 // // using snapshots for live changes, get to retrieve the data,

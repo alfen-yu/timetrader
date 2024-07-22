@@ -56,7 +56,7 @@ class _SideMenuState extends State<SideMenu> {
                   Navigator.pop(context);
                   // Handle settings navigation here
                 }),
-                const Divider(), // Add a divider for visual separation
+                const Divider(),
                 _buildMenuItem(Icons.exit_to_app, 'Logout', () async {
                   final logoutResult = await showGenericDialog(
                     context: context,
@@ -113,12 +113,22 @@ class _SideMenuState extends State<SideMenu> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: ElevatedButton(
-        onPressed: () {
-          showModalBottomSheet(
-            isScrollControlled: true,
-            context: context,
-            builder: (context) => RegisterTaskerBottomSheet(userData: userData),
-          );
+        onPressed: () async {
+          final authUser = AuthService.firebase().currentUser!;
+          final isRegistered = await FirebaseCloudStorage()
+              .isUserRegisteredAsTasker(authUser.id);
+          if (!mounted) return;
+          if (isRegistered) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('You are already registered as a tasker.')));
+          } else {
+            showModalBottomSheet(
+              isScrollControlled: true,
+              context: context,
+              builder: (context) =>
+                  RegisterTaskerBottomSheet(userData: userData),
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.orange,
