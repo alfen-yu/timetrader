@@ -7,6 +7,7 @@ class CloudOffer {
   final String taskId;
   final String offererId;
   final int offerAmount;
+  final int offerTime;
   final Timestamp timestamp;
 
   const CloudOffer({
@@ -14,6 +15,7 @@ class CloudOffer {
     required this.taskId,
     required this.offererId,
     required this.offerAmount,
+    required this.offerTime,
     required this.timestamp,
   });
 
@@ -22,5 +24,9 @@ class CloudOffer {
         taskId = snapshot.data()['taskId'],
         offererId = snapshot.data()['offererId'],
         offerAmount = snapshot.data()['offerAmount'],
+        offerTime = snapshot.data()['offerTime'],
         timestamp = snapshot.data()['timestamp'];
+        
 }
+
+

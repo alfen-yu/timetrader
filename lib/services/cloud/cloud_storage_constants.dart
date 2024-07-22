@@ -11,6 +11,7 @@ const cnicBackPictureUrlFieldName = 'cnicBackPictureUrl';
 
 // for Task 
 const tasksCollection = 'tasks';
+const offersCollection = 'offers';
 const titleFieldName = 'title';
 const locationFieldName = 'location';
 const statusFieldName = 'status';

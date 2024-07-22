@@ -13,6 +13,7 @@ class ErrorGettingUserFromTheDatabase extends CloudStorageException {}
 class CouldNotCreateTaskException extends CloudStorageException {}
 class CouldNotDeleteTaskException extends CloudStorageException {}
 class CouldNotUpdateTaskException extends CloudStorageException {}
+class CouldNotCreateOfferException extends CloudStorageException {}
 
 // Exception for Taskers 
 class CouldNotCreateTaskerException extends CloudStorageException {}

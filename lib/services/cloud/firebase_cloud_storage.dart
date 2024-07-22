@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:timetrader/services/cloud/cloud_storage_constants.dart';
 import 'package:timetrader/services/cloud/cloud_storage_exception.dart';
 import 'package:timetrader/services/cloud/cloud_user.dart';
+import 'package:timetrader/services/cloud/tasks/cloud_offer.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_tasker.dart';
 
@@ -18,6 +19,9 @@ class FirebaseCloudStorage {
 
   final CollectionReference tasks =
       FirebaseFirestore.instance.collection(tasksCollection);
+
+      final CollectionReference offers =
+      FirebaseFirestore.instance.collection(offersCollection);
 
   static final FirebaseCloudStorage _shared =
       FirebaseCloudStorage._sharedInstance();
@@ -111,7 +115,7 @@ class FirebaseCloudStorage {
 
   // Fetch offers count
   Future<int> getOffersCount(String taskId) async {
-    final snapshot = await tasks.doc(taskId).collection('offers').get();
+    final snapshot = await tasks.doc(taskId).collection(offersCollection).get();
     return snapshot.docs.length;
   }
 
@@ -191,6 +195,24 @@ class FirebaseCloudStorage {
     }
   }
 
+  Future<void> createOffer(CloudOffer offer) async {
+    try {
+      // Generate a new document ID for the offer
+      final offerDocRef = offers.doc();
+
+      // Set the offer data
+      await offerDocRef.set({
+        'taskId': offer.taskId,
+        'offererId': offer.offererId,
+        'offerAmount': offer.offerAmount,
+        'offerTime': offer.offerTime,
+        'timestamp': offer.timestamp,
+      });
+    } catch (e) {
+      throw CouldNotCreateOfferException();
+    }
+  }
+
   // Functions for Taskers
   Future<CloudTasker> createNewTasker({
     required String userId,
@@ -229,42 +251,3 @@ class FirebaseCloudStorage {
     return taskerDoc.exists;
   }
 }
-
-// // using snapshots for live changes, get to retrieve the data,
-// Stream<Iterable<CloudNote>> allNotes({required String ownerUserId}) =>
-//     notes.snapshots().map((event) => event.docs
-//         .map((doc) => CloudNote.fromSnapshot(doc))
-//         .where((note) => note.ownerUserId == ownerUserId));
-
-// Future<void> updateNote({required String documentId, required String text}) async {
-//   try {
-//     await notes.doc(documentId).update({textFieldName: text});
-//   } catch (e) {
-//     throw CouldNotUpdateNoteException();
-//   }
-// }
-
-// Future<void> deleteNote({required String documentId}) async {
-//   try {
-//     await notes.doc(documentId).delete();
-//   } catch (_) {
-//     throw CouldNotDeleteNoteException();
-//   }
-// }
-
-// Future<Iterable<CloudNote>> getNote({required String ownerUserId}) async {
-//   try {
-//     return await notes
-//         .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
-//         .get()
-//         .then((value) => value.docs.map((doc) => CloudNote.fromSnapshot(doc)));
-//   } catch (e) {
-//     throw CouldNotRetrieveNotesException();
-//   }
-// }
-
-// Future<CloudNote> createNewNote({required String ownerUserId}) async {
-//   final document = await notes.add({ownerUserIdFieldName: ownerUserId, textFieldName: ''});
-//   final fetchedNote = await document.get();
-//   return CloudNote(documentId: fetchedNote.id, ownerUserId: ownerUserId, text: '');
-// }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:intl/intl.dart';
+import 'package:timetrader/views/dashboard/tasks_display_page/make_offer.dart';
 
 class TaskDetailsView extends StatelessWidget {
   final CloudTask task;
@@ -15,7 +17,7 @@ class TaskDetailsView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(task.title),
-        backgroundColor: const Color(0xFF01A47D), 
+        backgroundColor: const Color(0xFF01A47D),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -31,6 +33,7 @@ class TaskDetailsView extends StatelessWidget {
               return const Center(child: Text('User not found.'));
             } else {
               final userDetails = snapshot.data!;
+              final userId = AuthService.firebase().currentUser!.id;
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,9 +67,9 @@ class TaskDetailsView extends StatelessWidget {
                           ),
                           const SizedBox(height: 16.0),
                           // Task Budget Estimate Section
-                          _buildBudgetEstimateSection(task),
+                          _buildBudgetEstimateSection(task, userId, context),
                           // Description Section
-                          const SizedBox(height: 20.0), 
+                          const SizedBox(height: 20.0),
                           const Text(
                             'Description:',
                             style: TextStyle(
@@ -137,7 +140,8 @@ class TaskDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildBudgetEstimateSection(CloudTask task) {
+  Widget _buildBudgetEstimateSection(
+      CloudTask task, String userId, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -171,117 +175,137 @@ class TaskDetailsView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20.0),
-        Center(
-          child: ElevatedButton(
-            onPressed: () {
-              // Implement action for making an offer
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              backgroundColor: const Color(0xFF01A47D), 
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0),
+        if (task.ownerUserId ==
+            userId) // Check if the user is not the task owner
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                // Check if the user is a registered tasker
+                FirebaseCloudStorage()
+                    .isUserRegisteredAsTasker(userId)
+                    .then((isTasker) {
+                  if (isTasker) {
+                    makeOfferSheet(
+                      context: context,
+                      taskId: task.taskId,
+                      offererId: userId,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please register as a tasker first.'),
+                      ),
+                    );
+                  }
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                backgroundColor: const Color(0xFF01A47D),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+              ),
+              child: const Text(
+                'Make an Offer',
+                style: TextStyle(fontSize: 16.0),
               ),
             ),
-            child: const Text(
-              'Make an Offer',
-              style: TextStyle(fontSize: 16.0),
-            ),
           ),
-        ),
       ],
     );
   }
+}
 
-  Widget _buildUserProfileSection(Map<String, dynamic> userDetails) {
-    return Row(
-      children: [
-        CircleAvatar(
-          backgroundImage: NetworkImage(userDetails['profilePictureUrl']),
-          radius: 25,
-        ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Posted By: ${userDetails['fullName']}",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+Widget _buildUserProfileSection(Map<String, dynamic> userDetails) {
+  return Row(
+    children: [
+      CircleAvatar(
+        backgroundImage: NetworkImage(userDetails['profilePictureUrl']),
+        radius: 25,
+      ),
+      const SizedBox(width: 10),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Posted By: ${userDetails['fullName']}",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        ),
-      ],
-    );
-  }
+          ),
+        ],
+      ),
+    ],
+  );
+}
 
-  Widget _buildOffersSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Offers:',
-          style: TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.teal,
+Widget _buildOffersSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Offers:',
+        style: TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.teal,
+        ),
+      ),
+      const SizedBox(height: 8.0),
+      Center(
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: Colors.redAccent.withOpacity(0.1),
+            border: Border.all(color: Colors.redAccent),
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: const Text(
+            'No offers yet.',
+            style: TextStyle(
+              fontSize: 16.0,
+              color: Colors.redAccent,
+            ),
           ),
         ),
-        const SizedBox(height: 8.0),
-        Center(
-          child: Container(
-            padding: const EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: Colors.redAccent.withOpacity(0.1),
-              border: Border.all(color: Colors.redAccent),
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child: const Text(
-              'No offers yet.',
-              style: TextStyle(
-                fontSize: 16.0,
-                color: Colors.redAccent,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
-  Widget _buildCommentsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Comments:',
-          style: TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.teal,
+Widget _buildCommentsSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Comments:',
+        style: TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.teal,
+        ),
+      ),
+      const SizedBox(height: 8.0),
+      Center(
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.1),
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: const Text(
+            'No comments yet.',
+            style: TextStyle(
+              fontSize: 16.0,
+              color: Colors.black54,
+            ),
           ),
         ),
-        const SizedBox(height: 8.0),
-        Center(
-          child: Container(
-            padding: const EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child: const Text(
-              'No comments yet.',
-              style: TextStyle(
-                fontSize: 16.0,
-                color: Colors.black54,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }
