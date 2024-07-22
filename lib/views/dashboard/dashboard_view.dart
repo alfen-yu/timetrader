@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:timetrader/views/dashboard/account_view.dart';
+import 'package:timetrader/views/dashboard/task_history_view.dart';
 import 'package:timetrader/views/dashboard/messages_view.dart';
-import 'package:timetrader/views/dashboard/navigation_bar.dart';
+import 'package:timetrader/utilities/navigation_bar.dart';
 import 'package:timetrader/views/dashboard/post_tasks_page/post_task_view.dart';
 import 'package:timetrader/views/dashboard/tasks_display_page/tasks_view.dart';
 
@@ -19,7 +19,7 @@ class _DashboardViewState extends State<DashboardView> {
     const TasksPage(),
     const PostTaskView(),
     const MessagesPage(),
-    const AccountPage(),
+    const TaskHistoryPage(),
   ];
 
   void onPageSelected(int index) {

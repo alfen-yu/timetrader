@@ -35,9 +35,9 @@ class NavigationBarView extends StatelessWidget {
           label: 'Messages',
         ),
         NavigationDestination(
-          selectedIcon: Icon(Icons.account_circle),
-          icon: Icon(Icons.account_circle_outlined),
-          label: 'Account',
+          selectedIcon: Icon(Icons.work_history_sharp),
+          icon: Icon(Icons.work_history_outlined),
+          label: 'Task History',
         ),
       ],
     );

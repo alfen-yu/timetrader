@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:timetrader/views/dashboard/side_menu_page/side_menu.dart';
 
-class AccountPage extends StatelessWidget {
-  const AccountPage({super.key});
+class TaskHistoryPage extends StatelessWidget {
+  const TaskHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,7 +10,7 @@ class AccountPage extends StatelessWidget {
       drawer: const SideMenu(),
       appBar: AppBar(
         title: const Text(
-          'Account',
+          'Task History',
           style: TextStyle(fontSize: 18),
         ),
         centerTitle: true,
@@ -20,7 +20,7 @@ class AccountPage extends StatelessWidget {
       ),
       body: const Center(
         child: Text(
-          'Account page content goes here',
+          'Task History page content goes here',
         ),
       ),
     );
