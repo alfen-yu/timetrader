@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
+import 'package:timetrader/services/cloud/tasks/cloud_offer.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:intl/intl.dart';
 import 'package:timetrader/views/dashboard/tasks_display_page/make_offer.dart';
@@ -13,6 +14,7 @@ class TaskDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dueDateFormatted = DateFormat('yyyy-MM-dd').format(task.dueDate);
+    final userId = AuthService.firebase().currentUser!.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -33,8 +35,6 @@ class TaskDetailsView extends StatelessWidget {
               return const Center(child: Text('User not found.'));
             } else {
               final userDetails = snapshot.data!;
-              final userId = AuthService.firebase().currentUser!.id;
-
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -92,7 +92,22 @@ class TaskDetailsView extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   // Offers Section
-                  _buildOffersSection(),
+                  FutureBuilder<List<CloudOffer>>(
+                    future:
+                        FirebaseCloudStorage().getOffersForTask(task.taskId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return _buildNoOffersSection();
+                      } else {
+                        final offers = snapshot.data!;
+                        return _buildOffersSection(offers);
+                      }
+                    },
+                  ),
                   const SizedBox(height: 20),
                   // Comments Section
                   _buildCommentsSection(),
@@ -217,95 +232,196 @@ class TaskDetailsView extends StatelessWidget {
       ],
     );
   }
-}
 
-Widget _buildUserProfileSection(Map<String, dynamic> userDetails) {
-  return Row(
-    children: [
-      CircleAvatar(
-        backgroundImage: NetworkImage(userDetails['profilePictureUrl']),
-        radius: 25,
-      ),
-      const SizedBox(width: 10),
-      Column(
+  Widget _buildUserProfileSection(Map<String, dynamic> userDetails) {
+    return Row(
+      children: [
+        CircleAvatar(
+          backgroundImage: NetworkImage(userDetails['profilePictureUrl']),
+          radius: 25,
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Posted By: ${userDetails['fullName']}",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOffersSection(List<CloudOffer> offers) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Offers:',
+          style: TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        for (final offer in offers) _buildOfferCard(offer),
+      ],
+    );
+  }
+
+  Widget _buildOfferCard(CloudOffer offer) {
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: FirebaseCloudStorage().getUserDetails(offer.offererId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData) {
+          return const Center(child: Text('User not found.'));
+        } else {
+          final userDetails = snapshot.data!;
+          final DateTime offerDateTime = (offer.timestamp).toDate();
+          final timeAgo = _getTimeDifference(offerDateTime);
+
+          return Card(
+            elevation: 4,
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage:
+                            NetworkImage(userDetails['profilePictureUrl']),
+                        radius: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userDetails['fullName'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            timeAgo,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'Rs. ${offer.offerAmount}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildNoOffersSection() {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            "Posted By: ${userDetails['fullName']}",
-            style: const TextStyle(
+          const Text(
+            'Offers:',
+            style: TextStyle(
+              fontSize: 20.0,
               fontWeight: FontWeight.bold,
+              color: Colors.teal,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.1),
+                border: Border.all(color: Colors.redAccent),
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: const Text(
+                'No offers yet.',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.redAccent,
+                ),
+              ),
             ),
           ),
         ],
-      ),
-    ],
-  );
-}
+      );
+  }
 
-Widget _buildOffersSection() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'Offers:',
-        style: TextStyle(
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-          color: Colors.teal,
-        ),
-      ),
-      const SizedBox(height: 8.0),
-      Center(
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            color: Colors.redAccent.withOpacity(0.1),
-            border: Border.all(color: Colors.redAccent),
-            borderRadius: BorderRadius.circular(12.0),
+  Widget _buildCommentsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Comments:',
+          style: TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal,
           ),
-          child: const Text(
-            'No offers yet.',
-            style: TextStyle(
-              fontSize: 16.0,
-              color: Colors.redAccent,
+        ),
+        const SizedBox(height: 8.0),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.1),
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: const Text(
+              'No comments yet.',
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Colors.black54,
+              ),
             ),
           ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
-Widget _buildCommentsSection() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'Comments:',
-        style: TextStyle(
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-          color: Colors.teal,
-        ),
-      ),
-      const SizedBox(height: 8.0),
-      Center(
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          child: const Text(
-            'No comments yet.',
-            style: TextStyle(
-              fontSize: 16.0,
-              color: Colors.black54,
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
+  String _getTimeDifference(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minutes ago';
+    } else {
+      return 'just now';
+    }
+  }
 }

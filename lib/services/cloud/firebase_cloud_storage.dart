@@ -213,6 +213,15 @@ class FirebaseCloudStorage {
     }
   }
 
+  Future<List<CloudOffer>> getOffersForTask(String taskId) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection(offersCollection)
+        .where('taskId', isEqualTo: taskId)
+        .get();
+
+    return querySnapshot.docs.map((doc) => CloudOffer.fromSnapshot(doc)).toList();
+  }
+
   // Functions for Taskers
   Future<CloudTasker> createNewTasker({
     required String userId,
@@ -244,7 +253,7 @@ class FirebaseCloudStorage {
 
   Future<bool> isUserRegisteredAsTasker(String userId) async {
     final taskerDoc = await FirebaseFirestore.instance
-        .collection('taskers')
+        .collection(taskersCollection)
         .doc(userId)
         .get();
 
