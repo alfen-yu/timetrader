@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timetrader/constants/categories.dart';
+import 'package:timetrader/services/auth/auth_service.dart';
+import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 
 class RegisterTaskerBottomSheet extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -7,7 +9,8 @@ class RegisterTaskerBottomSheet extends StatefulWidget {
   const RegisterTaskerBottomSheet({super.key, required this.userData});
 
   @override
-  State<RegisterTaskerBottomSheet> createState() => _RegisterTaskerBottomSheetState();
+  State<RegisterTaskerBottomSheet> createState() =>
+      _RegisterTaskerBottomSheetState();
 }
 
 class _RegisterTaskerBottomSheetState extends State<RegisterTaskerBottomSheet> {
@@ -17,11 +20,12 @@ class _RegisterTaskerBottomSheetState extends State<RegisterTaskerBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return FractionallySizedBox(
-      heightFactor: 0.90, 
+      heightFactor: 0.90,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
-          shrinkWrap: true, // Ensures the ListView is only as tall as its content
+          shrinkWrap:
+              true, // Ensures the ListView is only as tall as its content
           children: [
             Text(
               'Tasker Registration',
@@ -34,7 +38,8 @@ class _RegisterTaskerBottomSheetState extends State<RegisterTaskerBottomSheet> {
             const SizedBox(height: 16),
             _buildUserDetail('Full Name', widget.userData['fullName'] ?? 'N/A'),
             _buildUserDetail('Address', widget.userData['address'] ?? 'N/A'),
-            _buildUserDetail('Phone Number', widget.userData['phoneNumber'] ?? 'N/A'),
+            _buildUserDetail(
+                'Phone Number', widget.userData['phoneNumber'] ?? 'N/A'),
             const SizedBox(height: 16),
             _buildCapacityOfWorkField(),
             const SizedBox(height: 16),
@@ -42,8 +47,34 @@ class _RegisterTaskerBottomSheetState extends State<RegisterTaskerBottomSheet> {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle submission logic
+                onPressed: () async {
+                  if (capacityOfWork == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please enter capacity of work.')));
+                    return;
+                  }
+                  if (_selectedSkills.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please select at least one skill.')));
+                    return;
+                  }
+                  try {
+                    final userId = AuthService.firebase().currentUser!.id;
+
+                    await FirebaseCloudStorage().createNewTasker(
+                      userId: userId,
+                      capacityOfWork: capacityOfWork!,
+                      skills: _selectedSkills,
+                    );
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Tasker registration successful!')));
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text(
+                            'Tasker registration failed! Please try again.')));
+                  }
                   Navigator.of(context).pop();
                 },
                 child: const Text('Complete Registration'),
@@ -62,7 +93,8 @@ class _RegisterTaskerBottomSheetState extends State<RegisterTaskerBottomSheet> {
         children: [
           Expanded(child: Text('$label:')),
           Expanded(
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(value,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -77,7 +109,7 @@ class _RegisterTaskerBottomSheetState extends State<RegisterTaskerBottomSheet> {
           child: TextFormField(
             decoration: InputDecoration(
               hintText: 'Enter number of hours',
-              hintStyle: const TextStyle(fontSize: 12), 
+              hintStyle: const TextStyle(fontSize: 12),
               suffixIcon: IconButton(
                 icon: const Icon(Icons.info_outline),
                 onPressed: () {
@@ -86,7 +118,8 @@ class _RegisterTaskerBottomSheetState extends State<RegisterTaskerBottomSheet> {
                     builder: (context) {
                       return AlertDialog(
                         title: const Text('Capacity of Work'),
-                        content: const Text('Indicate how many hours you can work in a day.'),
+                        content: const Text(
+                            'Indicate how many hours you can work in a day.'),
                         actions: [
                           TextButton(
                             child: const Text('OK'),

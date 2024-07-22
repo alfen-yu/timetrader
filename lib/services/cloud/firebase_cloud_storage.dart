@@ -5,10 +5,14 @@ import 'package:timetrader/services/cloud/cloud_storage_constants.dart';
 import 'package:timetrader/services/cloud/cloud_storage_exception.dart';
 import 'package:timetrader/services/cloud/cloud_user.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
+import 'package:timetrader/services/cloud/tasks/cloud_tasker.dart';
 
 class FirebaseCloudStorage {
   final CollectionReference users =
       FirebaseFirestore.instance.collection(usersCollection);
+
+  final CollectionReference taskers =
+      FirebaseFirestore.instance.collection(taskersCollection);
 
   final FirebaseStorage storage = FirebaseStorage.instance;
 
@@ -186,8 +190,36 @@ class FirebaseCloudStorage {
       throw CouldNotUpdateTaskException();
     }
   }
-}
 
+  // Functions for Taskers
+  Future<CloudTasker> createNewTasker({
+    required String userId,
+    required int capacityOfWork,
+    required List<String> skills,
+  }) async {
+    if (userId.isEmpty) {
+      throw Exception('User ID is missing or empty');
+    }
+
+    try {
+      // Create tasker document in Firestore
+      await taskers.doc(userId).set({
+        'uid': userId, // id of the user not the tasker
+        'capacityOfWork': capacityOfWork,
+        'skills': skills,
+        'isTasker': true,
+      });
+
+      return CloudTasker(
+        userId: userId,
+        capacityOfWork: capacityOfWork,
+        skills: skills,
+      );
+    } catch (e) {
+      throw CouldNotCreateTaskerException();
+    }
+  }
+}
 
 // // using snapshots for live changes, get to retrieve the data,
 // Stream<Iterable<CloudNote>> allNotes({required String ownerUserId}) =>
