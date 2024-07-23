@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:timetrader/enums/task_status.dart';
+import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/cloud_storage_constants.dart';
 import 'package:timetrader/services/cloud/cloud_storage_exception.dart';
 import 'package:timetrader/services/cloud/cloud_user.dart';
+import 'package:timetrader/services/cloud/tasks/cloud_comment.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_offer.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_tasker.dart';
@@ -21,8 +23,11 @@ class FirebaseCloudStorage {
   final CollectionReference tasks =
       FirebaseFirestore.instance.collection(tasksCollection);
 
-      final CollectionReference offers =
+  final CollectionReference offers =
       FirebaseFirestore.instance.collection(offersCollection);
+
+  final CollectionReference comments =
+      FirebaseFirestore.instance.collection(commentsCollection);
 
   static final FirebaseCloudStorage _shared =
       FirebaseCloudStorage._sharedInstance();
@@ -91,6 +96,37 @@ class FirebaseCloudStorage {
     }
   }
 
+  // Fetches the user's name from Firestore
+Future<String> getUserName(String userId) async {
+  try {
+    final doc = await users.doc(userId).get();
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      return data['fullName'] ?? 'Unknown User';
+    } else {
+      return 'Unknown User';
+    }
+  } catch (e) {
+    throw Exception('Error fetching user name: $e');
+  }
+}
+
+// Fetches the user's profile picture URL from Firestore
+Future<String> getUserProfilePicture(String userId) async {
+  try {
+    final doc = await users.doc(userId).get();
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      return data['profilePictureUrl'] ?? '';
+    } else {
+      return '';
+    }
+  } catch (e) {
+    throw Exception('Error fetching user profile picture: $e');
+  }
+}
+
+
   Future<Map<String, dynamic>?> getUserDetails(String userId) async {
     try {
       final doc = await users.doc(userId).get();
@@ -151,7 +187,7 @@ class FirebaseCloudStorage {
         budgetFieldName: budget,
         jobTypeFieldName: jobType,
         categoryFieldName: category,
-        statusFieldName: status.toString().split('.').last, 
+        statusFieldName: status.toString().split('.').last,
         createdAtFieldName: createdAt,
         dueDateFieldName: Timestamp.fromDate(dueDate),
       });
@@ -184,7 +220,7 @@ class FirebaseCloudStorage {
         locationFieldName: location,
         budgetFieldName: budget,
         categoryFieldName: category,
-        statusFieldName: status.toString().split('.').last, 
+        statusFieldName: status.toString().split('.').last,
         jobTypeFieldName: jobType,
         dueDateFieldName: Timestamp.fromDate(dueDate),
       };
@@ -196,25 +232,25 @@ class FirebaseCloudStorage {
   }
 
   Future<void> updateTaskStatus({
-  required String taskId,
-  required TaskStatus status,
-}) async {
-  try {
-    // Convert the TaskStatus enum to a string
-    final statusString = status.toString().split('.').last;
+    required String taskId,
+    required TaskStatus status,
+  }) async {
+    try {
+      // Convert the TaskStatus enum to a string
+      final statusString = status.toString().split('.').last;
 
-    // Get a reference to the Firestore document
-    final taskDocRef = FirebaseFirestore.instance.collection(tasksCollection).doc(taskId);
+      // Get a reference to the Firestore document
+      final taskDocRef =
+          FirebaseFirestore.instance.collection(tasksCollection).doc(taskId);
 
-    // Update the status field in the Firestore document
-    await taskDocRef.update({
-      'status': statusString,
-    });
-
-  } catch (e) {
-    // Handle errors, e.g., show an error message to the user
+      // Update the status field in the Firestore document
+      await taskDocRef.update({
+        'status': statusString,
+      });
+    } catch (e) {
+      // Handle errors, e.g., show an error message to the user
+    }
   }
-}
 
   Future<void> createOffer(CloudOffer offer) async {
     try {
@@ -240,7 +276,44 @@ class FirebaseCloudStorage {
         .where('taskId', isEqualTo: taskId)
         .get();
 
-    return querySnapshot.docs.map((doc) => CloudOffer.fromSnapshot(doc)).toList();
+    return querySnapshot.docs
+        .map((doc) => CloudOffer.fromSnapshot(doc))
+        .toList();
+  }
+
+  Future<void> addComment({
+    required String taskId,
+    required String commentText,
+  }) async {
+    final userId = AuthService.firebase().currentUser!.id;
+
+    // Create a new comment
+    CloudComment newComment = CloudComment(
+      commentId: comments.doc().id,
+      taskId: taskId,
+      commenterId: userId,
+      commentText: commentText,
+      timestamp: Timestamp.now(),
+    );
+
+    // Save the comment to Firestore
+    await comments.doc(newComment.commentId).set({
+      'taskId': newComment.taskId,
+      'commenterId': newComment.commenterId,
+      'commentText': newComment.commentText,
+      'timestamp': newComment.timestamp,
+    });
+  }
+
+  Stream<List<CloudComment>> getComments(String taskId) {
+    return comments
+        .where('taskId', isEqualTo: taskId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => CloudComment.fromSnapshot(
+                doc as QueryDocumentSnapshot<Map<String, dynamic>>))
+            .toList());
   }
 
   // Functions for Taskers

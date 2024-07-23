@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timetrader/enums/task_status.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
+import 'package:timetrader/services/cloud/tasks/cloud_comment.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_offer.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:intl/intl.dart';
@@ -237,18 +238,10 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 backgroundColor: const Color(0xFF01A47D),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                ),
               ),
-              child: const Text(
-                'Make an Offer',
-                style: TextStyle(fontSize: 16.0),
-              ),
+              child: const Text('Make an Offer'),
             ),
           ),
       ],
@@ -362,125 +355,128 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
   }
 
   void _handleAcceptOffer(CloudOffer offer) async {
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Accept Task'),
-        content: const Text('Do you want to accept this task?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Accept'),
-          ),
-        ],
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Accept Task'),
+          content: const Text('Do you want to accept this task?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Accept'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      final updatedTask = widget.task.copyWith(
+        status: TaskStatus.accepted,
       );
-    },
-  );
 
-  if (result == true) {
-    final updatedTask = widget.task.copyWith(
-      status: TaskStatus.accepted,
-    );
+      await FirebaseCloudStorage().updateTaskStatus(
+        taskId: updatedTask.taskId,
+        status: updatedTask.status,
+      );
 
-    await FirebaseCloudStorage().updateTaskStatus(
-      taskId: updatedTask.taskId,
-      status: updatedTask.status,
-    );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task has been accepted.'),
+        ),
+      );
 
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Task has been accepted.'),
-      ),
-    );
-
-    setState(() {
-      task = updatedTask; // Update the task in the UI
-    });
+      setState(() {
+        task = updatedTask; // Update the task in the UI
+      });
+    }
   }
-}
 
   Widget _buildOfferCard(CloudOffer offer) {
-  return FutureBuilder<Map<String, dynamic>?>(
-    future: FirebaseCloudStorage().getUserDetails(offer.offererId),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      } else if (snapshot.hasError) {
-        return Center(child: Text('Error: ${snapshot.error}'));
-      } else if (!snapshot.hasData) {
-        return const Center(child: Text('User not found.'));
-      } else {
-        final userDetails = snapshot.data!;
-        final DateTime offerDateTime = (offer.timestamp).toDate();
-        final timeAgo = _getTimeDifference(offerDateTime);
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: FirebaseCloudStorage().getUserDetails(offer.offererId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData) {
+          return const Center(child: Text('User not found.'));
+        } else {
+          final userDetails = snapshot.data!;
+          final DateTime offerDateTime = (offer.timestamp).toDate();
+          final timeAgo = _getTimeDifference(offerDateTime);
 
-        return Card(
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(userDetails['profilePictureUrl']),
-                      radius: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          userDetails['fullName'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          timeAgo,
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Rs. ${offer.offerAmount}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+          return Card(
+            elevation: 4,
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage:
+                            NetworkImage(userDetails['profilePictureUrl']),
+                        radius: 20,
                       ),
-                    ),
-                    if (widget.task.ownerUserId == AuthService.firebase().currentUser!.id &&
-                        widget.task.status != TaskStatus.accepted)
-                      TextButton(
-                        onPressed: () => _handleAcceptOffer(offer),
-                        child: const Text('Accept'),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userDetails['fullName'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            timeAgo,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12.0,
+                            ),
+                          ),
+                        ],
                       ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Rs. ${offer.offerAmount}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      if (widget.task.ownerUserId ==
+                              AuthService.firebase().currentUser!.id &&
+                          widget.task.status != TaskStatus.accepted)
+                        TextButton(
+                          onPressed: () => _handleAcceptOffer(offer),
+                          child: const Text('Accept'),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      }
-    },
-  );
-}
+          );
+        }
+      },
+    );
+  }
+
   Widget _buildNoOffersSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -517,6 +513,8 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
   }
 
   Widget _buildCommentsSection() {
+    TextEditingController commentController = TextEditingController();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -548,24 +546,108 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
               ),
             ),
           )
-        else
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: const Text(
-                'No comments yet.',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black54,
+        else ...[
+          const SizedBox(height: 16.0),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: commentController,
+                  decoration: InputDecoration(
+                    hintText: 'Type your comment...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 10.0,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 8.0),
+              IconButton(
+                icon: const Icon(Icons.send, color: Colors.teal),
+                onPressed: () async {
+                  if (commentController.text.isNotEmpty) {
+                    await FirebaseCloudStorage().addComment(
+                      taskId: widget.task.taskId,
+                      commentText: commentController.text,
+                    );
+
+                    // Clear the text field
+                    commentController.clear();
+                  }
+                },
+              ),
+            ],
           ),
+          const SizedBox(height: 16.0),
+          StreamBuilder<List<CloudComment>>(
+            stream: FirebaseCloudStorage().getComments(widget.task.taskId),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              var comments = snapshot.data!;
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: comments.length,
+                itemBuilder: (context, index) {
+                  CloudComment comment = comments[index];
+                  return ListTile(
+                    leading: FutureBuilder<String>(
+                      future: FirebaseCloudStorage()
+                          .getUserProfilePicture(comment.commenterId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return const Icon(Icons.error);
+                        } else {
+                          final profilePictureUrl = snapshot.data ?? '';
+                          return CircleAvatar(
+                            backgroundImage: profilePictureUrl.isNotEmpty
+                                ? NetworkImage(profilePictureUrl)
+                                : null,
+                            child: profilePictureUrl.isEmpty
+                                ? const Icon(Icons.person)
+                                : null,
+                          );
+                        }
+                      },
+                    ),
+                    title: FutureBuilder<String>(
+                      future: FirebaseCloudStorage()
+                          .getUserName(comment.commenterId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text('Loading...');
+                        } else if (snapshot.hasError) {
+                          return const Text('Error');
+                        } else {
+                          return Text(snapshot.data ?? 'Unknown User');
+                        }
+                      },
+                    ),
+                    subtitle: Text(
+                      '${comment.commentText}\n${_getTimeDifference(comment.timestamp.toDate())}',
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ],
     );
   }

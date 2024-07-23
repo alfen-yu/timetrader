@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:timetrader/constants/routes.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
@@ -12,6 +13,7 @@ import 'package:firebase_core/firebase_core.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Initialize Firebase
+  await FirebaseAppCheck.instance.activate();
 
   runApp(const MyApp());
 } 
