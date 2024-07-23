@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
+import 'package:timetrader/enums/task_status.dart'; // Import TaskStatus enum
 
 class CRUDTaskView extends StatefulWidget {
   const CRUDTaskView({super.key});
@@ -73,7 +74,6 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
     }
   }
 
-
   void _saveTask() async {
     final task = _task;
     final title = _titleController.text;
@@ -83,6 +83,7 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
     final category = _category;
     final location = _jobType == 'Online' ? '' : _locationController.text;
     final budget = int.tryParse(_budgetController.text) ?? 0;
+    const status = TaskStatus.open; 
 
     if (task != null && title.isNotEmpty && description.isNotEmpty) {
       // Update existing task
@@ -93,7 +94,7 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
         hours: hours,
         jobType: jobType,
         category: category,
-        status: true,
+        status: status,
         location: location,
         budget: budget,
         dueDate: _dueDate,
@@ -111,7 +112,7 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
         hours: hours,
         jobType: jobType,
         category: category,
-        status: true,
+        status: status,
         location: location,
         budget: budget,
         createdAt: createdAt,
@@ -235,10 +236,11 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
                 setState(() {
                   _isLoading = true;
                 });
-                _saveTask();
+                _saveTask(); 
                 setState(() {
                   _isLoading = false;
                 });
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
               },
               child: _isLoading

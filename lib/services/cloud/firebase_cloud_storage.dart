@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:timetrader/enums/task_status.dart';
 import 'package:timetrader/services/cloud/cloud_storage_constants.dart';
 import 'package:timetrader/services/cloud/cloud_storage_exception.dart';
 import 'package:timetrader/services/cloud/cloud_user.dart';
@@ -136,7 +137,7 @@ class FirebaseCloudStorage {
     required int budget,
     required String jobType,
     required String category,
-    required bool status,
+    required TaskStatus status,
     required Timestamp createdAt,
     required DateTime dueDate,
   }) async {
@@ -150,7 +151,7 @@ class FirebaseCloudStorage {
         budgetFieldName: budget,
         jobTypeFieldName: jobType,
         categoryFieldName: category,
-        statusFieldName: status,
+        statusFieldName: status.toString().split('.').last, 
         createdAtFieldName: createdAt,
         dueDateFieldName: Timestamp.fromDate(dueDate),
       });
@@ -171,7 +172,7 @@ class FirebaseCloudStorage {
     required String location,
     required int budget,
     required String category,
-    required bool status,
+    required TaskStatus status,
     required String jobType,
     required DateTime dueDate,
   }) async {
@@ -183,17 +184,37 @@ class FirebaseCloudStorage {
         locationFieldName: location,
         budgetFieldName: budget,
         categoryFieldName: category,
-        statusFieldName: status,
+        statusFieldName: status.toString().split('.').last, 
         jobTypeFieldName: jobType,
+        dueDateFieldName: Timestamp.fromDate(dueDate),
       };
-
-      updateData[dueDateFieldName] = Timestamp.fromDate(dueDate);
 
       await tasks.doc(documentId).update(updateData);
     } catch (e) {
       throw CouldNotUpdateTaskException();
     }
   }
+
+  Future<void> updateTaskStatus({
+  required String taskId,
+  required TaskStatus status,
+}) async {
+  try {
+    // Convert the TaskStatus enum to a string
+    final statusString = status.toString().split('.').last;
+
+    // Get a reference to the Firestore document
+    final taskDocRef = FirebaseFirestore.instance.collection(tasksCollection).doc(taskId);
+
+    // Update the status field in the Firestore document
+    await taskDocRef.update({
+      'status': statusString,
+    });
+
+  } catch (e) {
+    // Handle errors, e.g., show an error message to the user
+  }
+}
 
   Future<void> createOffer(CloudOffer offer) async {
     try {

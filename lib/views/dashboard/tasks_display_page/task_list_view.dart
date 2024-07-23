@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
+import 'package:timetrader/enums/task_status.dart';
 
 typedef TaskCallback = void Function(CloudTask task);
 
@@ -22,7 +23,7 @@ class TasksListView extends StatelessWidget {
         .getDownloadURL();
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     final sortedTasks = tasks.toList()
       ..sort((a, b) => b.taskId.compareTo(a.taskId));
@@ -111,12 +112,12 @@ class TasksListView extends StatelessWidget {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: _getStatusColor(task.status),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child: Text(
-                        task.status ? 'Open' : 'Closed',
+                        _getStatusText(task.status),
                         style: const TextStyle(fontSize: 12, color: Colors.white),
                       ),
                     ),
@@ -134,20 +135,30 @@ class TasksListView extends StatelessWidget {
       },
     );
   }
+
+  String _getStatusText(TaskStatus status) {
+    switch (status) {
+      case TaskStatus.open:
+        return 'Open';
+      case TaskStatus.closed:
+        return 'Closed';
+      case TaskStatus.accepted:
+        return 'Accepted';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  Color _getStatusColor(TaskStatus status) {
+    switch (status) {
+      case TaskStatus.open:
+        return Colors.green;
+      case TaskStatus.closed:
+        return Colors.red;
+      case TaskStatus.accepted:
+        return Colors.yellow;
+      default:
+        return Colors.grey;
+    }
+  }
 }
-
-
-// IconButton(
-                  //   onPressed: () async {
-                  //     final deleteResult = await showGenericDialog(
-                  //       context: context,
-                  //       title: 'Delete Task?',
-                  //       content: 'Do you want to delete this task?',
-                  //       optionsBuilder: () => {'OK': true, 'Cancel': false},
-                  //     );
-                  //     if (deleteResult == true) {
-                  //       onDeleteTask(task);
-                  //     }
-                  //   },
-                  //   icon: const Icon(Icons.delete),
-                  // ),

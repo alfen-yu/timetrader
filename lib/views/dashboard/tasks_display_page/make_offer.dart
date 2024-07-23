@@ -8,6 +8,7 @@ void makeOfferSheet({
   required BuildContext context,
   required String taskId,
   required String offererId,
+  required void Function(double) onOfferMade,
 }) {
   final TextEditingController priceController = TextEditingController();
   final TextEditingController timeController = TextEditingController();
@@ -26,7 +27,7 @@ void makeOfferSheet({
               const Text(
                 'Place Your Bid',
                 style: TextStyle(
-                  fontSize: 20.0, 
+                  fontSize: 20.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -53,13 +54,14 @@ void makeOfferSheet({
                   final timeRequired = int.tryParse(timeController.text) ?? 0;
 
                   if (offerAmount <= 0 || timeRequired <= 0) {
-                    await showErrorDialog(context, 'Please enter valid details.');
+                    await showErrorDialog(
+                        context, 'Please enter valid details.');
                     return;
                   }
 
                   // Create the offer object
                   final offer = CloudOffer(
-                    offerId: '', 
+                    offerId: '',
                     taskId: taskId,
                     offererId: offererId,
                     offerAmount: offerAmount,
