@@ -97,35 +97,34 @@ class FirebaseCloudStorage {
   }
 
   // Fetches the user's name from Firestore
-Future<String> getUserName(String userId) async {
-  try {
-    final doc = await users.doc(userId).get();
-    if (doc.exists) {
-      final data = doc.data() as Map<String, dynamic>;
-      return data['fullName'] ?? 'Unknown User';
-    } else {
-      return 'Unknown User';
+  Future<String> getUserName(String userId) async {
+    try {
+      final doc = await users.doc(userId).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        return data['fullName'] ?? 'Unknown User';
+      } else {
+        return 'Unknown User';
+      }
+    } catch (e) {
+      throw Exception('Error fetching user name: $e');
     }
-  } catch (e) {
-    throw Exception('Error fetching user name: $e');
   }
-}
 
 // Fetches the user's profile picture URL from Firestore
-Future<String> getUserProfilePicture(String userId) async {
-  try {
-    final doc = await users.doc(userId).get();
-    if (doc.exists) {
-      final data = doc.data() as Map<String, dynamic>;
-      return data['profilePictureUrl'] ?? '';
-    } else {
-      return '';
+  Future<String> getUserProfilePicture(String userId) async {
+    try {
+      final doc = await users.doc(userId).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        return data['profilePictureUrl'] ?? '';
+      } else {
+        return '';
+      }
+    } catch (e) {
+      throw Exception('Error fetching user profile picture: $e');
     }
-  } catch (e) {
-    throw Exception('Error fetching user profile picture: $e');
   }
-}
-
 
   Future<Map<String, dynamic>?> getUserDetails(String userId) async {
     try {
@@ -250,6 +249,17 @@ Future<String> getUserProfilePicture(String userId) async {
     } catch (e) {
       // Handle errors, e.g., show an error message to the user
     }
+  }
+
+  Stream<List<CloudTask>> tasksByTasker(String taskerId) {
+    return tasks.where('taskerId', isEqualTo: taskerId).snapshots().map(
+        (snapshot) =>
+            snapshot.docs.map((doc) => CloudTask.fromSnapshot(doc as DocumentSnapshot<Map<String, dynamic>>)).toList());
+  }
+
+  Stream<List<CloudTask>> tasksByPoster(String posterId) {
+    return tasks.where('uid', isEqualTo: posterId).snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => CloudTask.fromSnapshot(doc as DocumentSnapshot<Map<String, dynamic>>)).toList());
   }
 
   Future<void> createOffer(CloudOffer offer) async {
