@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:timetrader/enums/task_status.dart';
 import 'package:timetrader/services/auth/auth_service.dart';
 import 'package:timetrader/services/cloud/firebase_cloud_storage.dart';
@@ -6,6 +7,7 @@ import 'package:timetrader/services/cloud/tasks/cloud_comment.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_offer.dart';
 import 'package:timetrader/services/cloud/tasks/cloud_task.dart';
 import 'package:intl/intl.dart';
+import 'package:timetrader/services/cloud/tasks/cloud_tasker.dart';
 import 'package:timetrader/views/dashboard/tasks_display_page/make_offer.dart';
 
 class TaskDetailsView extends StatefulWidget {
@@ -420,67 +422,101 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
           return const Center(child: Text('User not found.'));
         } else {
           final userDetails = snapshot.data!;
-          final DateTime offerDateTime = (offer.timestamp).toDate();
+          final DateTime offerDateTime = offer.timestamp.toDate();
           final timeAgo = _getTimeDifference(offerDateTime);
 
-          return Card(
-            elevation: 4,
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundImage:
-                            NetworkImage(userDetails['profilePictureUrl']),
-                        radius: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userDetails['fullName'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+          // Fetch Tasker details (including ratings)
+          return FutureBuilder<CloudTasker?>(
+            future: FirebaseCloudStorage().getTaskerDetails(offer.offererId),
+            builder: (context, taskerSnapshot) {
+              if (taskerSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (taskerSnapshot.hasError) {
+                return Center(child: Text('Error: ${taskerSnapshot.error}'));
+              } else {
+                final tasker = taskerSnapshot.data;
+                final rating = tasker?.rating ?? 0.0;
+                final ratingCount = tasker?.ratingCount ?? 0;
+
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                  userDetails['profilePictureUrl']),
+                              radius: 20,
                             ),
-                          ),
-                          Text(
-                            timeAgo,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12.0,
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  userDetails['fullName'],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  timeAgo,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                                // Display rating and rating count
+                                Row(
+                                  children: [
+                                    RatingBarIndicator(
+                                      rating: rating,
+                                      itemBuilder: (context, index) =>
+                                          const Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                      ),
+                                      itemCount: 5,
+                                      itemSize: 18.0,
+                                      direction: Axis.horizontal,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text('$rating ($ratingCount)'),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Rs. ${offer.offerAmount}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          ],
                         ),
-                      ),
-                      if (widget.task.ownerUserId ==
-                              AuthService.firebase().currentUser!.id &&
-                          widget.task.status != TaskStatus.accepted)
-                        TextButton(
-                          onPressed: () => _handleAcceptOffer(offer),
-                          child: const Text('Accept'),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Rs. ${offer.offerAmount}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            if (widget.task.ownerUserId ==
+                                    AuthService.firebase().currentUser!.id &&
+                                widget.task.status != TaskStatus.accepted)
+                              TextButton(
+                                onPressed: () => _handleAcceptOffer(offer),
+                                child: const Text('Accept'),
+                              ),
+                          ],
                         ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
+                );
+              }
+            },
           );
         }
       },

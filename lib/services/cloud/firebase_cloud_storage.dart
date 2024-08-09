@@ -363,10 +363,12 @@ class FirebaseCloudStorage {
 
     try {
       // Create tasker document in Firestore
-      await taskers.doc(userId).set({
-        'uid': userId, // id of the user not the tasker
+      await FirebaseFirestore.instance.collection('taskers').doc(userId).set({
+        'uid': userId, // id of the user, not the tasker
         'capacityOfWork': capacityOfWork,
         'skills': skills,
+        'rating': 0.0, // Initial rating is 0
+        'ratingCount': 0, // Initial rating count is 0
         'isTasker': true,
       });
 
@@ -374,9 +376,45 @@ class FirebaseCloudStorage {
         userId: userId,
         capacityOfWork: capacityOfWork,
         skills: skills,
+        rating: 0.0, // Initial rating
+        ratingCount: 0, // Initial rating count
       );
     } catch (e) {
-      throw CouldNotCreateTaskerException();
+      throw CouldNotCreateTaskerException('Failed to create tasker: $e');
+    }
+  }
+
+  // Method to update the rating of the tasker
+  Future<void> updateRating(double newRating, String taskerId) async {
+    if (newRating < 0 || newRating > 5) {
+      throw ArgumentError('Rating must be between 0 and 5');
+    }
+
+    final taskerRef =
+        FirebaseFirestore.instance.collection('taskers').doc(taskerId);
+
+    try {
+      final taskerDoc = await taskerRef.get();
+      final data = taskerDoc.data();
+      if (data == null) {
+        throw Exception('Tasker data not found');
+      }
+
+      final currentRating = (data['rating'] as num?)?.toDouble() ?? 0.0;
+      final currentRatingCount = (data['ratingCount'] as num?)?.toInt() ?? 0;
+
+      // Calculate the new average rating
+      final newRatingCount = currentRatingCount + 1;
+      final updatedRating =
+          ((currentRating * currentRatingCount) + newRating) / newRatingCount;
+
+      // Update the rating and rating count in Firestore
+      await taskerRef.update({
+        'rating': updatedRating,
+        'ratingCount': newRatingCount,
+      });
+    } catch (e) {
+      throw CouldNotUpdateRatingException('Failed to update rating: $e');
     }
   }
 
@@ -387,5 +425,20 @@ class FirebaseCloudStorage {
         .get();
 
     return taskerDoc.exists;
+  }
+
+  Future<CloudTasker?> getTaskerDetails(String userId) async {
+    try {
+      final DocumentSnapshot taskerDoc = await taskers.doc(userId).get();
+
+      if (taskerDoc.exists && taskerDoc.data() != null) {
+        return CloudTasker.fromSnapshot(
+            taskerDoc as DocumentSnapshot<Map<String, dynamic>>);
+      } else {
+        return null; // Return null if the tasker is not found
+      }
+    } catch (e) {
+      return null; // Return null if there's an error
+    }
   }
 }
