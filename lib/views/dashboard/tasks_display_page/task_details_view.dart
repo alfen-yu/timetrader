@@ -431,8 +431,6 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
             builder: (context, taskerSnapshot) {
               if (taskerSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (taskerSnapshot.hasError) {
-                return Center(child: Text('Error: ${taskerSnapshot.error}'));
               } else {
                 final tasker = taskerSnapshot.data;
                 final rating = tasker?.rating ?? 0.0;
@@ -500,6 +498,14 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
+                              ),
+                            ),
+                            // Display offerTime under the price
+                            Text(
+                              '${offer.offerTime} hours',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12.0,
                               ),
                             ),
                             if (widget.task.ownerUserId ==
