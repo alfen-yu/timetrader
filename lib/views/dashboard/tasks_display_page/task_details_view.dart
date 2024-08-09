@@ -362,7 +362,8 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
           ),
         ),
         const SizedBox(height: 8.0),
-        if (widget.task.status == TaskStatus.accepted || widget.task.status == TaskStatus.closed)
+        if (widget.task.status == TaskStatus.accepted ||
+            widget.task.status == TaskStatus.closed)
           Center(
             child: Container(
               padding: const EdgeInsets.all(20.0),
@@ -605,7 +606,8 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
           ),
         ),
         const SizedBox(height: 8.0),
-        if (widget.task.status == TaskStatus.accepted || widget.task.status == TaskStatus.closed)
+        if (widget.task.status == TaskStatus.accepted ||
+            widget.task.status == TaskStatus.closed)
           Center(
             child: Container(
               padding: const EdgeInsets.all(20.0),
@@ -813,15 +815,11 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
               'Are you sure you want to mark this task as completed?'),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
+              onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
+              onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Mark as Completed'),
             )
           ],
@@ -839,6 +837,63 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
       );
 
       if (!context.mounted) return;
+
+      // Show rating dialog
+      final rating = await showDialog<double>(
+        context: context,
+        builder: (BuildContext context) {
+          double rating = 0;
+          return AlertDialog(
+            title: const Text('Rate the Tasker'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Please rate the tasker for this task:'),
+                RatingBar.builder(
+                  initialRating: 0,
+                  minRating: 1,
+                  direction: Axis.horizontal,
+                  allowHalfRating: true,
+                  itemCount: 5,
+                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  itemBuilder: (context, _) => const Icon(
+                    Icons.star,
+                    color: Colors.amber,
+                  ),
+                  onRatingUpdate: (rating) {
+                    rating = rating;
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(rating),
+                child: const Text('Submit Rating'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (rating != null && rating > 0) {
+        // Update tasker's rating
+        try {
+          await FirebaseCloudStorage()
+              .updateRating(rating, updatedTask.acceptedTaskerId!);
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Tasker rating updated successfully.')),
+          );
+        } catch (e) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update tasker rating.')),
+          );
+        }
+      }
+      if (!context.mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -847,7 +902,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
       );
 
       setState(() {
-        task = updatedTask; // Update the task in the UI
+        task = updatedTask;
       });
     }
   }
