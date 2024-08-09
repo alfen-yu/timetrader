@@ -145,13 +145,13 @@ class FirebaseCloudStorage {
 
   // Fetch comments count
   Future<int> getCommentsCount(String taskId) async {
-    final snapshot = await tasks.doc(taskId).collection('comments').get();
+    final snapshot = await comments.where('taskId', isEqualTo: taskId).get();
     return snapshot.docs.length;
   }
 
   // Fetch offers count
   Future<int> getOffersCount(String taskId) async {
-    final snapshot = await tasks.doc(taskId).collection(offersCollection).get();
+    final snapshot = await offers.where('taskId', isEqualTo: taskId).get();
     return snapshot.docs.length;
   }
 
@@ -253,13 +253,18 @@ class FirebaseCloudStorage {
 
   Stream<List<CloudTask>> tasksByTasker(String taskerId) {
     return tasks.where('taskerId', isEqualTo: taskerId).snapshots().map(
-        (snapshot) =>
-            snapshot.docs.map((doc) => CloudTask.fromSnapshot(doc as DocumentSnapshot<Map<String, dynamic>>)).toList());
+        (snapshot) => snapshot.docs
+            .map((doc) => CloudTask.fromSnapshot(
+                doc as DocumentSnapshot<Map<String, dynamic>>))
+            .toList());
   }
 
   Stream<List<CloudTask>> tasksByPoster(String posterId) {
     return tasks.where('uid', isEqualTo: posterId).snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => CloudTask.fromSnapshot(doc as DocumentSnapshot<Map<String, dynamic>>)).toList());
+        snapshot.docs
+            .map((doc) => CloudTask.fromSnapshot(
+                doc as DocumentSnapshot<Map<String, dynamic>>))
+            .toList());
   }
 
   Future<void> createOffer(CloudOffer offer) async {

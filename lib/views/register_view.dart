@@ -62,16 +62,50 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   Future<void> _register() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     // Gather all user data
     final fullName = _fullName.text;
     final email = _email.text;
     final password = _password.text;
     final address = _address.text;
     final phoneNumber = _phoneNumber.text;
+
+    // Check if any fields or images are empty
+    if (fullName.isEmpty) {
+      await showErrorDialog(context, 'Please enter your full name.');
+      return;
+    }
+    if (email.isEmpty) {
+      await showErrorDialog(context, 'Please enter your email address.');
+      return;
+    }
+    if (password.isEmpty) {
+      await showErrorDialog(context, 'Please enter a password.');
+      return;
+    }
+    if (address.isEmpty) {
+      await showErrorDialog(context, 'Please enter your address.');
+      return;
+    }
+    if (phoneNumber.isEmpty) {
+      await showErrorDialog(context, 'Please enter your phone number.');
+      return;
+    }
+    if (_profilePicture == null) {
+      await showErrorDialog(context, 'Please upload your profile picture.');
+      return;
+    }
+    if (_cnicFrontPicture == null) {
+      await showErrorDialog(context, 'Please upload the front picture of your CNIC.');
+      return;
+    }
+    if (_cnicBackPicture == null) {
+      await showErrorDialog(context, 'Please upload the back picture of your CNIC.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       await AuthService.firebase().createUser(
@@ -304,39 +338,20 @@ class _RegisterViewState extends State<RegisterView> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 24.0),
+                const SizedBox(height: 32.0),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _register,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightBlueAccent,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Register'),
-                ),
-                const SizedBox(height: 16.0),
-                const Text('Already Registered?', textAlign: TextAlign.center),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      loginRoute,
-                      (route) => false,
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.lightBlueAccent,
-                  ),
-                  child: const Text('Login Here'),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        )
+                      : const Text('Register'),
                 ),
               ],
             ),
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.black54,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
         ],
       ),
     );

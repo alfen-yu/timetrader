@@ -42,7 +42,8 @@ class TasksListView extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: ListTile(
                 onTap: () => onTapTask(task),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: SizedBox(
                   width: 60,
                   height: 60,
@@ -63,23 +64,38 @@ class TasksListView extends StatelessWidget {
                       children: [
                         const Icon(Icons.location_on, size: 14),
                         const SizedBox(width: 4),
-                        Text(task.jobType == 'Physical' ? task.location : 'Online'),
+                        Text(task.jobType == 'Physical'
+                            ? task.location
+                            : 'Online'),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         FutureBuilder<int>(
-                          future: FirebaseCloudStorage().getCommentsCount(task.taskId),
+                          future: FirebaseCloudStorage()
+                              .getCommentsCount(task.taskId),
                           builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            }
+
+                            if (snapshot.hasError) {
+                              // Log or display the error message
+                              print(
+                                  'Error fetching comments: ${snapshot.error}');
+                              return Text('Error: ${snapshot.error}');
+                            }
+
                             final commentsCount = snapshot.data ?? 0;
                             return Row(
                               children: [
-                                const Icon(Icons.comment, size: 10),
+                                const Icon(Icons.comment, size: 9),
                                 const SizedBox(width: 8),
                                 Text(
                                   '$commentsCount Comments',
-                                  style: const TextStyle(fontSize: 10),
+                                  style: const TextStyle(fontSize: 9),
                                 ),
                               ],
                             );
@@ -87,16 +103,17 @@ class TasksListView extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                         FutureBuilder<int>(
-                          future: FirebaseCloudStorage().getOffersCount(task.taskId),
+                          future: FirebaseCloudStorage()
+                              .getOffersCount(task.taskId),
                           builder: (context, snapshot) {
                             final offersCount = snapshot.data ?? 0;
                             return Row(
                               children: [
-                                const Icon(Icons.local_offer, size: 10),
+                                const Icon(Icons.local_offer, size: 9),
                                 const SizedBox(width: 8),
                                 Text(
                                   '$offersCount Offers',
-                                  style: const TextStyle(fontSize: 10),
+                                  style: const TextStyle(fontSize: 9),
                                 ),
                               ],
                             );
@@ -115,16 +132,19 @@ class TasksListView extends StatelessWidget {
                         color: _getStatusColor(task.status),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       child: Text(
                         _getStatusText(task.status),
-                        style: const TextStyle(fontSize: 12, color: Colors.white),
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.white),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Rs.${task.budget}',
-                      style: const TextStyle(fontSize: 12, color: Colors.lightBlueAccent),
+                      style: const TextStyle(
+                          fontSize: 12, color: Colors.lightBlueAccent),
                     ),
                   ],
                 ),

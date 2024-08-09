@@ -36,22 +36,25 @@ class CloudTask {
   factory CloudTask.fromSnapshot(
       DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data()!;
+
+    // Use default values if fields are missing
     return CloudTask(
       taskId: snapshot.id,
-      ownerUserId: data[ownerUserIdFieldName],
-      title: data[titleFieldName],
-      description: data[descriptionFieldName],
-      hours: data[hoursFieldName],
+      ownerUserId: data[ownerUserIdFieldName] ?? '',
+      title: data[titleFieldName] ?? '',
+      description: data[descriptionFieldName] ?? '',
+      hours: data[hoursFieldName] ?? '',
       location: data[locationFieldName] ?? '',
-      budget: data[budgetFieldName] ?? 0,
-      jobType: data[jobTypeFieldName],
-      category: data[categoryFieldName],
+      budget: (data[budgetFieldName] as int?) ?? 0,
+      jobType: data[jobTypeFieldName] ?? '',
+      category: data[categoryFieldName] ?? '',
       status: TaskStatus.values.firstWhere(
         (e) => e.toString().split('.').last == data[statusFieldName],
-        orElse: () => TaskStatus.open, // Default value in case of missing or incorrect status
+        orElse: () => TaskStatus.open,
       ),
-      createdAt: data[createdAtFieldName],
-      dueDate: (data[dueDateFieldName] as Timestamp).toDate(),
+      createdAt: data[createdAtFieldName] as Timestamp? ?? Timestamp.now(),
+      dueDate:
+          (data[dueDateFieldName] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 

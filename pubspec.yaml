@@ -46,6 +46,8 @@ dependencies:
   firebase_storage: ^12.1.1
   intl: ^0.19.0
   firebase_app_check: ^0.3.0+3
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.1
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +59,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/logomain.png"
+  background_color: "#000000"
+
+flutter_native_splash:
+  background_image: "assets/splash_screen.jpg"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
