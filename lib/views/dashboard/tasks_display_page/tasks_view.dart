@@ -58,7 +58,6 @@ class _TasksPageState extends State<TasksPage> {
                       builder: (context) => TaskDetailsView(task: task),
                     ),
                   );
-                  // Navigator.of(context).pushNamed(crudTaskViewRoute, arguments: task);
                 },
               );
             }

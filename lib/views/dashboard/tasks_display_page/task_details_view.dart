@@ -48,6 +48,14 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                 _handleDeleteTask(context);
               },
             ),
+          if (widget.task.ownerUserId == userId &&
+              widget.task.status == TaskStatus.accepted)
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: () {
+                _handleMarkTaskAsCompleted(context);
+              },
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -323,7 +331,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
         status: TaskStatus.accepted,
       );
 
-      await FirebaseCloudStorage().updateTaskWhenAccepted(
+      await FirebaseCloudStorage().updateTaskWhenStatus(
         taskId: updatedTask.taskId,
         status: updatedTask.status,
       );
@@ -354,7 +362,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
           ),
         ),
         const SizedBox(height: 8.0),
-        if (widget.task.status == TaskStatus.accepted)
+        if (widget.task.status == TaskStatus.accepted || widget.task.status == TaskStatus.closed)
           Center(
             child: Container(
               padding: const EdgeInsets.all(20.0),
@@ -405,15 +413,15 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
         status: TaskStatus.accepted,
         acceptedTaskerId: offer.offererId, // Update the acceptedTaskerId
       );
-      await FirebaseCloudStorage().updateTaskWhenAccepted( 
+      await FirebaseCloudStorage().updateTaskWhenStatus(
         taskId: updatedTask.taskId,
         status: updatedTask.status,
-        acceptedTaskerId: updatedTask.acceptedTaskerId, // Pass the acceptedTaskerId
+        acceptedTaskerId:
+            updatedTask.acceptedTaskerId, // Pass the acceptedTaskerId
       );
 
-
       if (!mounted) return;
-      Navigator.of(context).pop(); 
+      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Task has been accepted.'),
@@ -597,7 +605,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
           ),
         ),
         const SizedBox(height: 8.0),
-        if (widget.task.status == TaskStatus.accepted)
+        if (widget.task.status == TaskStatus.accepted || widget.task.status == TaskStatus.closed)
           Center(
             child: Container(
               padding: const EdgeInsets.all(20.0),
@@ -792,6 +800,55 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
 
       // Navigate back after deletion
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleMarkTaskAsCompleted(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Mark Task as Completed'),
+          content: const Text(
+              'Are you sure you want to mark this task as completed?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Mark as Completed'),
+            )
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      final updatedTask = widget.task.copyWith(
+        status: TaskStatus.closed,
+      );
+      await FirebaseCloudStorage().updateTaskWhenStatus(
+        taskId: updatedTask.taskId,
+        status: updatedTask.status,
+      );
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task marked as completed.'),
+        ),
+      );
+
+      setState(() {
+        task = updatedTask; // Update the task in the UI
+      });
     }
   }
 }

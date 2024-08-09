@@ -251,7 +251,7 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<void> updateTaskWhenAccepted({
+  Future<void> updateTaskWhenStatus({
     required String taskId,
     required TaskStatus status,
     String? acceptedTaskerId,
