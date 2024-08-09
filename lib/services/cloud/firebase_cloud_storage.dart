@@ -209,6 +209,7 @@ class FirebaseCloudStorage {
         statusFieldName: status.toString().split('.').last,
         createdAtFieldName: createdAt,
         dueDateFieldName: Timestamp.fromDate(dueDate),
+        acceptedTaskerIdFieldName: null,
       });
 
       final fetchedTask = await document.get();
@@ -250,9 +251,10 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<void> updateTaskStatus({
+  Future<void> updateTaskWhenAccepted({
     required String taskId,
     required TaskStatus status,
+    String? acceptedTaskerId,
   }) async {
     try {
       // Convert the TaskStatus enum to a string
@@ -262,18 +264,29 @@ class FirebaseCloudStorage {
       final taskDocRef =
           FirebaseFirestore.instance.collection(tasksCollection).doc(taskId);
 
-      // Update the status field in the Firestore document
-      await taskDocRef.update({
+      // Create a map to hold the fields to be updated
+      Map<String, dynamic> updateData = {
         'status': statusString,
-      });
+      };
+
+      // Add acceptedTaskerId to updateData only if it's not null
+      if (acceptedTaskerId != null) {
+        updateData['acceptedTaskerId'] = acceptedTaskerId;
+      }
+
+      // Update the fields in the Firestore document
+      await taskDocRef.update(updateData);
     } catch (e) {
-      // Handle errors, e.g., show an error message to the user
+      throw CouldNotUpdateTaskException();
     }
   }
 
   Stream<List<CloudTask>> tasksByTasker(String taskerId) {
-    return tasks.where('taskerId', isEqualTo: taskerId).snapshots().map(
-        (snapshot) => snapshot.docs
+    return tasks
+        .where('acceptedTaskerId',
+            isEqualTo: taskerId) // Query based on acceptedTaskerId
+        .snapshots()
+        .map((snapshot) => snapshot.docs
             .map((doc) => CloudTask.fromSnapshot(
                 doc as DocumentSnapshot<Map<String, dynamic>>))
             .toList());

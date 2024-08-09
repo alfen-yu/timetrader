@@ -17,6 +17,7 @@ class CloudTask {
   final TaskStatus status;
   final Timestamp createdAt;
   final DateTime dueDate;
+  final String? acceptedTaskerId;
 
   const CloudTask({
     required this.taskId,
@@ -31,6 +32,7 @@ class CloudTask {
     required this.status,
     required this.createdAt,
     required this.dueDate,
+    this.acceptedTaskerId,
   });
 
   factory CloudTask.fromSnapshot(
@@ -55,6 +57,7 @@ class CloudTask {
       createdAt: data[createdAtFieldName] as Timestamp? ?? Timestamp.now(),
       dueDate:
           (data[dueDateFieldName] as Timestamp?)?.toDate() ?? DateTime.now(),
+      acceptedTaskerId: data['acceptedTaskerId'],
     );
   }
 
@@ -71,6 +74,7 @@ class CloudTask {
     TaskStatus? status,
     Timestamp? createdAt,
     DateTime? dueDate,
+    String? acceptedTaskerId,
   }) {
     return CloudTask(
       taskId: taskId ?? this.taskId,
@@ -85,6 +89,7 @@ class CloudTask {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       dueDate: dueDate ?? this.dueDate,
+      acceptedTaskerId: acceptedTaskerId ?? this.acceptedTaskerId,
     );
   }
 }

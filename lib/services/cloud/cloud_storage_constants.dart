@@ -26,6 +26,7 @@ const budgetFieldName = 'budget';
 const jobTypeFieldName = 'jobType';
 const createdAtFieldName = 'createdAt';
 const dueDateFieldName = 'dueDate';
+const acceptedTaskerIdFieldName = 'acceptedTaskerId';
 
 // For Tasker 
 const taskersCollection = 'taskers';

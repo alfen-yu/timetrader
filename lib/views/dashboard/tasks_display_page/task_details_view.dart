@@ -323,7 +323,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
         status: TaskStatus.accepted,
       );
 
-      await FirebaseCloudStorage().updateTaskStatus(
+      await FirebaseCloudStorage().updateTaskWhenAccepted(
         taskId: updatedTask.taskId,
         status: updatedTask.status,
       );
@@ -403,14 +403,17 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
     if (result == true) {
       final updatedTask = widget.task.copyWith(
         status: TaskStatus.accepted,
+        acceptedTaskerId: offer.offererId, // Update the acceptedTaskerId
       );
-
-      await FirebaseCloudStorage().updateTaskStatus(
+      await FirebaseCloudStorage().updateTaskWhenAccepted( 
         taskId: updatedTask.taskId,
         status: updatedTask.status,
+        acceptedTaskerId: updatedTask.acceptedTaskerId, // Pass the acceptedTaskerId
       );
 
+
       if (!mounted) return;
+      Navigator.of(context).pop(); 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Task has been accepted.'),

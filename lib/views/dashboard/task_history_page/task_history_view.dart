@@ -48,13 +48,13 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0), // Adjusted padding
+            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
             child: Container(
               width: double.infinity,
-              height: 60, // Smaller height
+              height: 60,
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(30), // Slightly rounded corners
+                borderRadius: BorderRadius.circular(30),
                 border: Border.all(
                   color: Colors.grey,
                   width: 2,
@@ -82,7 +82,7 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
                               color: _isTaskerSelected
                                   ? Colors.white
                                   : Colors.black,
-                              fontSize: 14, 
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -113,7 +113,7 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
                               color: !_isTaskerSelected
                                   ? Colors.white
                                   : Colors.black,
-                              fontSize: 14, 
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -125,32 +125,74 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<CloudTask>>(
-              stream: _isTaskerSelected
-                  ? _tasksService.tasksByTasker(_uid)
-                  : _tasksService.tasksByPoster(_uid),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No tasks available.'));
-                } else {
-                  final tasks = snapshot.data!;
-                  return TasksListView(
-                    tasks: tasks,
-                    onTapTask: (task) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => TaskDetailsView(task: task),
-                        ),
-                      );
+            child: _isTaskerSelected
+                ? FutureBuilder<bool>(
+                    future: _tasksService.isUserRegisteredAsTasker(_uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else {
+                        final isTasker = snapshot.data ?? false;
+
+                        if (isTasker) {
+                          return StreamBuilder<List<CloudTask>>(
+                            stream: _tasksService.tasksByTasker(_uid),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator());
+                              } else if (snapshot.hasError) {
+                                return Center(child: Text('Error: ${snapshot.error}'));
+                              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return const Center(child: Text('No tasks available.'));
+                              } else {
+                                final tasks = snapshot.data!;
+                                return TasksListView(
+                                  tasks: tasks,
+                                  onTapTask: (task) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => TaskDetailsView(task: task),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
+                            },
+                          );
+                        } else {
+                          return const Center(
+                            child: Text('You are not registered as a tasker.'),
+                          );
+                        }
+                      }
                     },
-                  );
-                }
-              },
-            ),
+                  )
+                : StreamBuilder<List<CloudTask>>(
+                    stream: _tasksService.tasksByPoster(_uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No tasks available.'));
+                      } else {
+                        final tasks = snapshot.data!;
+                        return TasksListView(
+                          tasks: tasks,
+                          onTapTask: (task) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => TaskDetailsView(task: task),
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
           ),
         ],
       ),
