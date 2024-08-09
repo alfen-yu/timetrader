@@ -93,6 +93,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                             icon: Icons.date_range,
                             title: 'Due Date',
                             content: dueDateFormatted,
+                            additionalContent: widget.task.hours,
                           ),
                           const SizedBox(height: 16.0),
                           // Task Budget Estimate Section
@@ -154,6 +155,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
     required IconData icon,
     required String title,
     required String content,
+    String? additionalContent,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,6 +181,17 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                 color: Colors.black87,
               ),
             ),
+            if (additionalContent !=
+                null) // Conditionally display the estimated time
+              const SizedBox(height: 4.0),
+            if (additionalContent != null)
+              Text(
+                'Estimated Time: $additionalContent hours',
+                style: const TextStyle(
+                  fontSize: 14.0,
+                  color: Colors.black,
+                ),
+              ),
           ],
         ),
       ],
@@ -566,6 +579,8 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
 
   Widget _buildCommentsSection() {
     TextEditingController commentController = TextEditingController();
+    final userId =
+        AuthService.firebase().currentUser!.id; // Get the current user's ID
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -600,41 +615,63 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
           )
         else ...[
           const SizedBox(height: 16.0),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: commentController,
-                  decoration: InputDecoration(
-                    hintText: 'Type your comment...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 10.0,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8.0),
-              IconButton(
-                icon: const Icon(Icons.send, color: Colors.teal),
-                onPressed: () async {
-                  if (commentController.text.isNotEmpty) {
-                    await FirebaseCloudStorage().addComment(
-                      taskId: widget.task.taskId,
-                      commentText: commentController.text,
-                    );
+          // Check if the user is registered as a tasker
+          FutureBuilder<bool>(
+            future: FirebaseCloudStorage().isUserRegisteredAsTasker(userId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else {
+                final isTasker = snapshot.data ?? false;
 
-                    // Clear the text field
-                    commentController.clear();
-                  }
-                },
-              ),
-            ],
+                if (isTasker) {
+                  // User is a tasker, show the comment input field
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: commentController,
+                          decoration: InputDecoration(
+                            hintText: 'Type your comment...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 10.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      IconButton(
+                        icon: const Icon(Icons.send, color: Colors.teal),
+                        onPressed: () async {
+                          if (commentController.text.isNotEmpty) {
+                            await FirebaseCloudStorage().addComment(
+                              taskId: widget.task.taskId,
+                              commentText: commentController.text,
+                            );
+
+                            // Clear the text field
+                            commentController.clear();
+                          }
+                        },
+                      ),
+                    ],
+                  );
+                } else {
+                  // User is not a tasker, show a message
+                  return const Center(
+                    child: Text('Only registered taskers can comment.'),
+                  );
+                }
+              }
+            },
           ),
           const SizedBox(height: 16.0),
           StreamBuilder<List<CloudComment>>(
