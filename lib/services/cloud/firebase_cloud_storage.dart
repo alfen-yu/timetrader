@@ -155,9 +155,29 @@ class FirebaseCloudStorage {
     return snapshot.docs.length;
   }
 
-  Future<void> deleteTask({required String documentId}) async {
+  Future<void> deleteTask(String taskId) async {
     try {
-      await tasks.doc(documentId).delete();
+      // Delete the task document
+      await tasks.doc(taskId).delete();
+
+      // Delete associated offers
+      final offersSnapshot =
+          await offers.where('taskId', isEqualTo: taskId).get();
+      if (offersSnapshot.docs.isNotEmpty) {
+        for (var offerDoc in offersSnapshot.docs) {
+          await offerDoc.reference.delete();
+        }
+      }
+
+      // Delete associated comments
+      final commentsSnapshot =
+          await comments.where('taskId', isEqualTo: taskId).get();
+
+      if (commentsSnapshot.docs.isNotEmpty) {
+        for (var commentDoc in commentsSnapshot.docs) {
+          await commentDoc.reference.delete();
+        }
+      }
     } catch (e) {
       throw CouldNotDeleteTaskException();
     }

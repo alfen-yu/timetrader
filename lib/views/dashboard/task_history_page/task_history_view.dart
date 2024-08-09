@@ -48,13 +48,13 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0), // Padding around the container
+            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0), // Adjusted padding
             child: Container(
               width: double.infinity,
-              height: 80, // Reduced height
+              height: 60, // Smaller height
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(0), // No border radius
+                borderRadius: BorderRadius.circular(30), // Slightly rounded corners
                 border: Border.all(
                   color: Colors.grey,
                   width: 2,
@@ -67,9 +67,14 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
                     child: GestureDetector(
                       onTap: () => _toggleView(true),
                       child: Container(
-                        color: _isTaskerSelected
-                            ? Colors.lightBlueAccent
-                            : Colors.transparent,
+                        decoration: BoxDecoration(
+                          color: _isTaskerSelected
+                              ? Colors.lightBlueAccent
+                              : Colors.transparent,
+                          borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(30),
+                          ),
+                        ),
                         child: Center(
                           child: Text(
                             'As Tasker',
@@ -77,7 +82,7 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
                               color: _isTaskerSelected
                                   ? Colors.white
                                   : Colors.black,
-                              fontSize: 16, // Reduced font size
+                              fontSize: 14, 
                             ),
                           ),
                         ),
@@ -93,9 +98,14 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
                     child: GestureDetector(
                       onTap: () => _toggleView(false),
                       child: Container(
-                        color: !_isTaskerSelected
-                            ? Colors.lightBlueAccent
-                            : Colors.transparent,
+                        decoration: BoxDecoration(
+                          color: !_isTaskerSelected
+                              ? Colors.lightBlueAccent
+                              : Colors.transparent,
+                          borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(30),
+                          ),
+                        ),
                         child: Center(
                           child: Text(
                             'As Poster',
@@ -103,7 +113,7 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
                               color: !_isTaskerSelected
                                   ? Colors.white
                                   : Colors.black,
-                              fontSize: 16, // Reduced font size
+                              fontSize: 14, 
                             ),
                           ),
                         ),

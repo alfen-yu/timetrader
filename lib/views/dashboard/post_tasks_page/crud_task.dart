@@ -70,7 +70,7 @@ class _CRUDTaskViewState extends State<CRUDTaskView> {
         _hoursController.text.isEmpty &&
         _locationController.text.isEmpty &&
         _budgetController.text.isEmpty) {
-      await _tasksService.deleteTask(documentId: task.taskId);
+      await _tasksService.deleteTask(task.taskId);
     }
   }
 

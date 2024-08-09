@@ -17,3 +17,9 @@ class CouldNotCreateOfferException extends CloudStorageException {}
 
 // Exception for Taskers 
 class CouldNotCreateTaskerException extends CloudStorageException {}
+
+// Exception for Offers
+class EmptyOffersSnapshotException extends CloudStorageException {}
+
+// Exception for Comments
+class EmptyCommentsSnapshotException extends CloudStorageException {}

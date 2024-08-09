@@ -37,6 +37,16 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
         title: Text(widget.task.title),
         backgroundColor: const Color(0xFF01A47D),
         foregroundColor: Colors.white,
+        actions: [
+          if (widget.task.ownerUserId == userId &&
+              widget.task.status == TaskStatus.open)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                _handleDeleteTask(context);
+              },
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -664,6 +674,42 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
       return '${difference.inMinutes} minutes ago';
     } else {
       return 'just now';
+    }
+  }
+
+  void _handleDeleteTask(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Task'),
+          content: const Text('Are you sure you want to delete this task?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      await FirebaseCloudStorage().deleteTask(widget.task.taskId);
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task has been deleted.'),
+        ),
+      );
+
+      // Navigate back after deletion
+      Navigator.of(context).pop();
     }
   }
 }

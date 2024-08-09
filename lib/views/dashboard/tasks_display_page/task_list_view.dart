@@ -83,8 +83,6 @@ class TasksListView extends StatelessWidget {
 
                             if (snapshot.hasError) {
                               // Log or display the error message
-                              print(
-                                  'Error fetching comments: ${snapshot.error}');
                               return Text('Error: ${snapshot.error}');
                             }
 
